@@ -1,6 +1,6 @@
 # cli
 
-> **Summary**: Full CLI for kapy-script with run, check, test, init, repl, and --watch commands. Parses kapy.pkg manifests, scaffolds projects, runs tests via bun:test, and provides an interactive REPL.
+> **Summary**: Command-line interface for kapy-script. 6 commands: run (with --watch), check, test, init, repl, --version/--help. Entry point at src/cli/main.ts with modules for init (project scaffolding), pkg (manifest parsing), repl (interactive), test-runner (discovers and runs .kapy test declarations), and watch (file watcher). All commands are wired and working.
 
 ## Location
 
@@ -19,8 +19,8 @@
 - `src/cli/main.ts`
 - `src/cli/init.ts`
 - `src/cli/pkg.ts`
-- `src/cli/test-runner.ts`
 - `src/cli/repl.ts`
+- `src/cli/test-runner.ts`
 - `src/cli/watch.ts`
 
 ## Design Decisions

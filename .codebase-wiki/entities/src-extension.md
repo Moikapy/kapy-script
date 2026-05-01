@@ -6,7 +6,13 @@
 - **Files**: 1 source files
 
 ## Key Files
+- `src/extension/commands/check.ts`
+- `src/extension/commands/init.ts`
+- `src/extension/commands/repl.ts`
+- `src/extension/commands/run.ts`
+- `src/extension/commands/test.ts`
 - `src/extension/index.ts`
+- `src/extension/watch.ts`
 
 ## Dependencies
 - (to be discovered)

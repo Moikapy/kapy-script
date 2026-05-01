@@ -92,8 +92,8 @@ export class Parser {
   // ── Declarations ──
 
   private declaration(): Declaration | null {
-    // Skip newlines between declarations
-    while (this.check(TokenType.NEWLINE)) {
+    // Skip newlines and stray dedents between declarations
+    while (this.check(TokenType.NEWLINE) || this.check(TokenType.DEDENT)) {
       this.advance();
     }
 
@@ -215,7 +215,7 @@ export class Parser {
       this.consumeNewline();
       this.consume(TokenType.INDENT, "Expected indented tools block.");
       const toolNames: string[] = [];
-      while (!this.check(TokenType.DEDENT)) {
+      while (!this.check(TokenType.DEDENT) && !this.isAtEnd()) {
         if (this.check(TokenType.NEWLINE)) { this.advance(); continue; }
         toolNames.push(this.consume(TokenType.IDENTIFIER, "Expected tool name.").lexeme);
         this.match(TokenType.COMMA);
@@ -272,7 +272,7 @@ export class Parser {
       this.consumeNewline();
       this.consume(TokenType.INDENT, "Expected indented permissions block.");
       const permMap: Record<string, string> = {};
-      while (!this.check(TokenType.DEDENT)) {
+      while (!this.check(TokenType.DEDENT) && !this.isAtEnd()) {
         if (this.check(TokenType.NEWLINE)) { this.advance(); continue; }
         const key = this.consume(TokenType.IDENTIFIER, "Expected permission key.").lexeme;
         this.consume(TokenType.COLON, "Expected ':' after permission key.");
@@ -540,6 +540,11 @@ export class Parser {
   }
 
   private stepStatement(): Statement {
+    // Handle return statements in steps
+    if (this.check(TokenType.RETURN)) {
+      return this.returnStatement();
+    }
+
     const expr = this.expression();
 
     // Check for -> binding
@@ -1261,6 +1266,7 @@ export class Parser {
 
   /** Synchronize after a parse error — skip to next resync point */
   private synchronize(): void {
+    this.advance(); // Always advance past the error token
     while (!this.isAtEnd()) {
       // Resync at declaration keywords and structural tokens
       switch (this.peek().type) {
@@ -1272,7 +1278,11 @@ export class Parser {
         case TokenType.IMPL:
         case TokenType.TEST:
         case TokenType.IMPORT:
+          return;
         case TokenType.DEDENT:
+          // Skip dedents — they're structural, not declarations
+          this.advance();
+          return;
         case TokenType.EOF:
           return;
         default:

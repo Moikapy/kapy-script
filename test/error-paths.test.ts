@@ -164,4 +164,15 @@ fn bad_match
     const errors = typeCheck(source);
     expect(errors.length).toBe(0);
   });
+
+  it("gracefully recovers from unclosed parenthesis", () => {
+    // Previously caused infinite loop — now recovers
+    const source = `fn demo
+  input x: any
+  output any
+  f(1, 2`;
+    const ast = parse(source);
+    // Parser should recover and produce 0 or more declarations
+    expect(Array.isArray(ast.declarations)).toBe(true);
+  });
 });

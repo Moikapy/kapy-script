@@ -170,16 +170,25 @@ describe("Transpiler", () => {
     expect(ts).toContain("while (x > 0)");
   });
 
-  it("skips parallel blocks (parser infinite loop bug)", () => {
-    // NOTE: The parser hangs on parallel blocks — known bug
-    // This test documents the expected behavior once the bug is fixed
-    expect(true).toBe(true);
+  it("transpiles parallel blocks", () => {
+    const source = `fn parallel_demo
+  input x: any
+  output any
+  parallel
+    fetch(x) -> a
+    load(x) -> b`;
+    const ts = transpile(source);
+    expect(ts).toContain("KapyRuntime.parallel");
   });
 
-  it("skips with timeout blocks (parser infinite loop bug)", () => {
-    // NOTE: The parser hangs on with blocks — known bug
-    // This test documents the expected behavior once the bug is fixed
-    expect(true).toBe(true);
+  it("transpiles with timeout blocks", () => {
+    const source = `fn with_demo
+  input x: any
+  output any
+  with timeout(5000)
+    fetch(x)`;
+    const ts = transpile(source);
+    expect(ts).toContain("KapyRuntime.withTimeout");
   });
 
   it("transpiles result unwrap operator (?)", () => {
@@ -219,19 +228,44 @@ describe("Transpiler", () => {
     expect(ts).toContain("let y = x + 1");
   });
 
-  it("skips agent declarations (parser infinite loop bug)", () => {
-    // NOTE: The parser hangs on agent blocks — known bug
-    expect(true).toBe(true);
+  it("transpiles agent declarations with runtime import", () => {
+    const source = `agent ResearchAgent
+  input query: string
+  output Report
+
+  tools
+    search_web, read_document
+
+  steps
+    search_web(query) -> sources
+    return sources`;
+    const ts = transpile(source);
+    expect(ts).toContain("ResearchAgent");
+    expect(ts).toContain("KapyRuntime.createAgent");
+    expect(ts).toContain("search_web");
+    expect(ts).toContain("read_document");
   });
 
-  it("skips trait declarations (parser infinite loop bug)", () => {
-    // NOTE: The parser hangs on trait blocks — known bug
-    expect(true).toBe(true);
+  it("transpiles trait declarations", () => {
+    const source = `trait Printable
+  fn show
+    input x: any
+    output string
+    x`;
+    const ts = transpile(source);
+    expect(ts).toContain("interface Printable");
+    expect(ts).toContain("show");
   });
 
-  it("skips impl declarations (parser infinite loop bug)", () => {
-    // NOTE: The parser hangs on impl blocks — known bug
-    expect(true).toBe(true);
+  it("transpiles impl declarations", () => {
+    const source = `impl Show for Printable
+  fn show
+    input x: any
+    output string
+    x`;
+    const ts = transpile(source);
+    expect(ts).toContain("Show");
+    expect(ts).toContain("Printable");
   });
 
   it("generates source map stub", () => {
