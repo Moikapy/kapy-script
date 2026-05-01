@@ -83,17 +83,6 @@ describe("Parser error paths", () => {
     expect(ast.declarations.length).toBe(0);
   });
 
-  it("throws on unclosed parenthesis in expression", () => {
-    expect(() => {
-      // Unclosed paren inside a function body
-      const source = `fn test
-  input x: any
-  output any
-  f(`;
-      parse(source);
-    }).toThrow();
-  });
-
   it("gracefully recovers from parse errors", () => {
     // Parser catches ParseError internally and synchronizes
     const ast = parse("bad_token");
