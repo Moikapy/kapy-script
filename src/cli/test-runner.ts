@@ -174,7 +174,10 @@ function runTestFile(filePath: string): TestResult {
       stderr: "pipe",
       env: {
         ...process.env,
-        NODE_PATH: resolve(__dirname, ".."),
+        NODE_PATH: [
+          join(resolve("."), "node_modules"),
+          resolve(__dirname, ".."),
+        ].join(":"),
       },
     });
 

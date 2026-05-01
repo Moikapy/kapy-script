@@ -119,13 +119,23 @@ export function runFile(filePath: string): void {
     mkdirSync(dirname(tsPath), { recursive: true });
     writeFileSync(tsPath, tsCode, "utf-8");
 
+    // Resolve @kapy/runtime: prefer project's node_modules, fall back to bundled runtime
+    const projectNodeModules = join(resolve("."), "node_modules");
+    const runtimePaths = [
+      projectNodeModules,                    // project-installed @kapy/runtime
+      join(dirname(absolutePath), "node_modules"), // near the .kapy file
+      resolve(__dirname, ".."),              // bundled runtime (dev)
+    ].filter(existsSync);
+
+    const nodePath = runtimePaths.join(":");
+
     const proc = Bun.spawnSync(["bun", "run", tsPath], {
       stdin: "inherit",
       stdout: "inherit",
       stderr: "inherit",
       env: {
         ...process.env,
-        NODE_PATH: resolve(__dirname, ".."),
+        NODE_PATH: nodePath,
       },
     });
 

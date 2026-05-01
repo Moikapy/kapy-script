@@ -1,1 +1,19 @@
-{ "name": "@kapy/runtime", "version": "0.1.0", "main": "index.ts" }
+{
+  "name": "@kapy/runtime",
+  "version": "0.1.0",
+  "description": "Runtime for kapy-script — Result type, llm(), embed(), print(), and utilities",
+  "keywords": ["kapy", "runtime", "ai", "language"],
+  "license": "MIT",
+  "author": "0xKobold",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moikapy/kapy-runtime"
+  },
+  "main": "index.ts",
+  "types": "index.ts",
+  "files": [
+    "index.ts",
+    "mock.ts"
+  ],
+  "dependencies": {}
+}
