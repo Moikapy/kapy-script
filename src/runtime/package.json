@@ -13,7 +13,11 @@
   "types": "index.ts",
   "files": [
     "index.ts",
-    "mock.ts"
+    "mock.ts",
+    "http/index.ts",
+    "fs/index.ts",
+    "json/index.ts",
+    "ai/index.ts"
   ],
   "dependencies": {}
 }

@@ -90,7 +90,14 @@ export class Emitter {
           const names = decl.names ? decl.names.join(", ") : "";
           this.imports.add(`import { ${names} } from "${decl.from}";`);
         } else if (decl.module.length >= 2 && decl.module[0] === "kapy") {
-          // kapy stdlib imports — will be handled via runtime
+          // kapy stdlib imports → @kapy/runtime submodules
+          const submodule = decl.module[1]; // kapy/http → http, kapy/json → json
+          const runtimeModule = `@kapy/runtime/${submodule}`;
+          if (decl.names && decl.names.length > 0) {
+            this.imports.add(`import { ${decl.names.join(", ")} } from "${runtimeModule}";`);
+          } else {
+            this.imports.add(`import * as ${submodule} from "${runtimeModule}";`);
+          }
         }
         break;
       case "FnDecl":
@@ -159,11 +166,11 @@ export class Emitter {
         this.emitTestDecl(decl);
         break;
       case "ImportDecl":
-        // Emit as a comment for now (stdlib imports are runtime-resolved)
-        this.emitLine(`// import: ${decl.module.join("/")}`);
         if (decl.from) {
+          // npm import — emit as-is
           this.emitLine(`import { ${(decl.names || []).join(", ")} } from "${decl.from}";`);
         }
+        // kapy stdlib imports are handled by collectImports (no duplicate emission)
         break;
     }
   }

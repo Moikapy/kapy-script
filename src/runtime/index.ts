@@ -248,3 +248,10 @@ export const KapyRuntime = {
 // ── Re-export mock functions ──
 
 export { mock_llm, mock_embed, mock_tool, mock_reset } from "./mock";
+// ── Stdlib module re-exports ──
+// These allow `import { ... } from "@kapy/runtime/http"` etc.
+
+export * as http from "./http";
+export * as fs from "./fs";
+export * as json from "./json";
+export * as ai from "./ai";
