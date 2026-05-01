@@ -3,22 +3,18 @@
 
 import { Token, TokenType } from "../lexer/token";
 import { ParseError } from "./errors";
-import {
-  type Expression,
-  type Statement,
-  type Declaration,
-  type KapyType,
-  type Pattern,
-  type Block,
-  type Program,
-  type Span,
-  type InputParam,
-  type MatchCase,
-  type CaseVariant,
-  // Concrete types
-  NumberLiteral,
-  StringLiteral,
-  BooleanLiteral,
+import type {
+  Expression,
+  Statement,
+  Declaration,
+  KapyType,
+  Pattern,
+  Block,
+  Program,
+  Span,
+  InputParam,
+  MatchCase,
+  CaseVariant,
   ArrayLiteral,
   RecordLiteral,
   Identifier,
@@ -50,23 +46,18 @@ import {
   ImplDecl,
   TestDecl,
   ImportDecl,
-  WildcardPattern,
-  IdentifierPattern,
-  LiteralPattern,
-  DestructurePattern,
-  PrimitiveType,
-  NamedType,
-  ArrayType,
-  GenericType,
-  span,
-  spanOf,
-  ident,
 } from "./ast";
+import { span, spanOf } from "./ast";
 
 export class Parser {
   private tokens: Token[];
   private current = 0;
   private file: string;
+  private depth = 0;
+  private maxDepth = 500;
+  // TODO: implement step counting for infinite loop detection
+  private steps = 0;
+  private maxSteps = 10000;
 
   constructor(tokens: Token[], file: string = "<input>") {
     this.tokens = tokens;
@@ -164,7 +155,7 @@ export class Parser {
     if (!this.check(TokenType.DEDENT)) {
       const stmts = this.parseBlockStatements();
       if (stmts.length === 1 && stmts[0].kind === "ExpressionStmt") {
-        return (stmts[0] as any).expr;
+        return (stmts[0] as ExpressionStmt).expr;
       }
       return { kind: "Block", statements: stmts, span: span(firstToken, this.previous()) };
     }
@@ -283,7 +274,7 @@ export class Parser {
         const value = this.expression();
         // Store as string representation
         if (key === "network" || key === "rate_limit") {
-          permMap[key] = value.kind === "Identifier" ? (value as any).name : String(value);
+          permMap[key] = value.kind === "Identifier" ? (value as Identifier).name : String(value);
         }
       }
       this.consume(TokenType.DEDENT, "Expected dedent after permissions block.");
@@ -298,7 +289,7 @@ export class Parser {
       name,
       inputs,
       output_type: outputType,
-      permissions: permissions as any,
+      permissions: permissions as ToolDecl["permissions"],
       body: { kind: "Block", statements: stmts, span: span(this.peek(), this.previous()) },
       span: span(toolToken, this.previous()),
     };
@@ -343,7 +334,7 @@ export class Parser {
     const caseToken = this.consume(TokenType.CASE, "Expected 'case'.");
     const name = this.consume(TokenType.IDENTIFIER, "Expected case name.").lexeme;
 
-    let fields: CaseVariant["fields"] = [];
+    let fields: Array<{ name: string; type?: KapyType; span: Span }> = [];
     if (this.match(TokenType.LPAREN)) {
       do {
         const fieldName = this.consume(TokenType.IDENTIFIER, "Expected field name.").lexeme;
@@ -499,8 +490,11 @@ export class Parser {
 
   private parseBlockStatements(): Statement[] {
     const stmts: Statement[] = [];
-    while (!this.check(TokenType.DEDENT) && !this.isAtEnd()) {
+    let iterations = 0;
+    while (!this.check(TokenType.DEDENT) && !this.isAtEnd() && iterations < 100) {
+      iterations++;
       if (this.check(TokenType.NEWLINE)) { this.advance(); continue; }
+      // console.log(`  [parseBlock] iteration ${iterations}, token: ${TokenType[this.peek().type]} "${this.peek().lexeme}" L${this.peek().span.line}`);
       try {
         const stmt = this.statement();
         if (stmt) stmts.push(stmt);
@@ -511,6 +505,9 @@ export class Parser {
           throw error;
         }
       }
+    }
+    if (iterations >= 100) {
+      throw this.error(this.peek(), `Infinite loop in parseBlockStatements at ${TokenType[this.peek().type]} "${this.peek().lexeme}"`);
     }
     return stmts;
   }
@@ -586,10 +583,10 @@ export class Parser {
       this.consumeNewline();
       return {
         kind: "AssignmentStmt",
-        name: (expr as any).name,
+        name: (expr as Identifier).name,
         mutable: false,
         value,
-        span: span(expr.span.start, this.previous().span),
+        span: spanOf(expr.span.start, this.previous().span),
       } as AssignmentStmt;
     }
 
@@ -602,10 +599,10 @@ export class Parser {
       this.consumeNewline();
       return {
         kind: "AssignmentStmt",
-        name: (expr as any).name,
+        name: (expr as Identifier).name,
         mutable: true,
         value,
-        span: span(expr.span.start, this.previous().span),
+        span: spanOf(expr.span.start, this.previous().span),
       } as AssignmentStmt;
     }
 
@@ -620,7 +617,13 @@ export class Parser {
   // ── Expressions ──
 
   private expression(): Expression {
-    return this.pipeline();
+    this.depth++;
+    if (this.depth > this.maxDepth) {
+      throw this.error(this.peek(), "Maximum expression depth exceeded. This may indicate a parser bug.");
+    }
+    const result = this.pipeline();
+    this.depth--;
+    return result;
   }
 
   private pipeline(): Expression {
@@ -683,7 +686,7 @@ export class Parser {
       this.consumeNewline();
     }
 
-    return { pattern, body, span: spanOf(pattern.span.start, this.previous().span.end) };
+    return { pattern, body, span: spanOf(pattern.span.start, this.previous().span) };
   }
 
   private parsePattern(): Pattern {
@@ -863,13 +866,13 @@ export class Parser {
 
     // Result unwrap: expr?
     if (this.match(TokenType.QUESTION)) {
-      expr = { kind: "ResultUnwrapExpr", expr, span: span(expr.span.start, this.previous().span) } as ResultUnwrapExpr;
+      expr = { kind: "ResultUnwrapExpr", expr, span: spanOf(expr.span.start, this.previous().span) } as ResultUnwrapExpr;
     }
 
     // Crash unwrap: expr!
     if (this.check(TokenType.BANG) && !this.checkAhead(TokenType.ASSIGN) && !this.checkAhead(TokenType.EQ)) {
       this.advance();
-      expr = { kind: "CrashUnwrapExpr", expr, span: span(expr.span.start, this.previous().span) } as CrashUnwrapExpr;
+      expr = { kind: "CrashUnwrapExpr", expr, span: spanOf(expr.span.start, this.previous().span) } as CrashUnwrapExpr;
     }
 
     return expr;
@@ -882,14 +885,14 @@ export class Parser {
       if (this.match(TokenType.LPAREN)) {
         const args = this.parseArguments();
         this.consume(TokenType.RPAREN, "Expected ')' after arguments.");
-        expr = { kind: "CallExpr", callee: expr, args, span: span(expr.span.start, this.previous().span) } as CallExpr;
+        expr = { kind: "CallExpr", callee: expr, args, span: spanOf(expr.span.start, this.previous().span) } as CallExpr;
       } else if (this.match(TokenType.DOT)) {
         const name = this.consume(TokenType.IDENTIFIER, "Expected property name after '.'.").lexeme;
-        expr = { kind: "MemberExpr", object: expr, property: name, span: span(expr.span.start, this.previous().span) } as MemberExpr;
+        expr = { kind: "MemberExpr", object: expr, property: name, span: spanOf(expr.span.start, this.previous().span) } as MemberExpr;
       } else if (this.match(TokenType.LBRACKET)) {
         const index = this.expression();
         this.consume(TokenType.RBRACKET, "Expected ']' after index.");
-        expr = { kind: "IndexExpr", object: expr, index, span: span(expr.span.start, this.previous().span) } as IndexExpr;
+        expr = { kind: "IndexExpr", object: expr, index, span: spanOf(expr.span.start, this.previous().span) } as IndexExpr;
       } else {
         break;
       }
@@ -1148,46 +1151,47 @@ export class Parser {
   // ── Type Parsing ──
 
   private parseType(): KapyType {
+    let baseType: KapyType;
+
     if (this.check(TokenType.IDENTIFIER)) {
       const nameToken = this.advance();
       const name = nameToken.lexeme;
 
       // Primitive types
       if (["string", "number", "boolean", "any", "void"].includes(name)) {
-        return { kind: "PrimitiveType", name: name as any, span: span(nameToken, nameToken) };
+        baseType = { kind: "PrimitiveType", name: name as "string" | "number" | "boolean" | "any" | "void", span: span(nameToken, nameToken) };
+      } else if (this.check(TokenType.LBRACKET)) {
+        // Name[] (array) or Name[T] / Name[T, E] (generic)
+        if (this.current + 1 < this.tokens.length && this.tokens[this.current + 1].type === TokenType.RBRACKET) {
+          // Name[] — array type
+          this.advance(); // consume [
+          this.advance(); // consume ]
+          baseType = { kind: "ArrayType", element_type: { kind: "NamedType", name, span: span(nameToken, nameToken) }, span: span(nameToken, this.previous()) };
+        } else {
+          // Name[T, E] — generic type
+          this.advance(); // consume [
+          const typeArgs: KapyType[] = [];
+          do {
+            typeArgs.push(this.parseType());
+          } while (this.match(TokenType.COMMA));
+          this.consume(TokenType.RBRACKET, "Expected ']'.");
+          baseType = { kind: "GenericType", name, type_args: typeArgs, span: span(nameToken, this.previous()) };
+        }
+      } else {
+        baseType = { kind: "NamedType", name, span: span(nameToken, nameToken) };
       }
-
-      // Check for generic args: Name[T] or Name[T, E]
-      if (this.match(TokenType.LBRACKET)) {
-        const typeArgs: KapyType[] = [];
-        do {
-          typeArgs.push(this.parseType());
-        } while (this.match(TokenType.COMMA));
-        this.consume(TokenType.RBRACKET, "Expected ']'");
-        return { kind: "GenericType", name, type_args: typeArgs, span: span(nameToken, this.previous()) };
-      }
-
-      // Check for array type: Type[]
-      if (this.match(TokenType.LBRACKET)) {
-        this.consume(TokenType.RBRACKET, "Expected ']'");
-        return {
-          kind: "ArrayType",
-          element_type: { kind: "NamedType", name, span: span(nameToken, nameToken) },
-          span: span(nameToken, this.previous()),
-        };
-      }
-
-      return { kind: "NamedType", name, span: span(nameToken, nameToken) };
+    } else {
+      throw this.error(this.peek(), "Expected type.");
     }
 
-    // Array type: Type[] (when type is not a simple name)
-    const innerType = this.parseType();
-    if (this.match(TokenType.LBRACKET) && this.check(TokenType.RBRACKET)) {
-      this.advance();
-      return { kind: "ArrayType", element_type: innerType, span: span(this.peek(), this.previous()) };
+    // Postfix [] for array types: T[]
+    while (this.check(TokenType.LBRACKET) && this.current + 1 < this.tokens.length && this.tokens[this.current + 1].type === TokenType.RBRACKET) {
+      this.advance(); // consume [
+      this.advance(); // consume ]
+      baseType = { kind: "ArrayType", element_type: baseType, span: spanOf(baseType.span.start, this.previous().span) };
     }
 
-    throw this.error(this.peek(), "Expected type.");
+    return baseType;
   }
 
   // ── Helpers ──
@@ -1227,6 +1231,10 @@ export class Parser {
   }
 
   private advance(): Token {
+    this.steps++;
+    if (this.steps > this.maxSteps) {
+      throw this.error(this.peek(), `Parser exceeded ${this.maxSteps} steps — likely infinite loop at ${this.peek().lexeme}`);
+    }
     if (!this.isAtEnd()) this.current++;
     return this.previous();
   }

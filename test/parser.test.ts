@@ -152,3 +152,28 @@ describe("Example files", () => {
     });
   }
 });
+
+describe("Type annotation parsing", () => {
+  it("parses array type syntax T[]", () => {
+    const source = `fn items
+  input x: string[]
+  output number[]
+  [1, 2, 3]`;
+    const ast = parse(source);
+    expect(ast.declarations.length).toBe(1);
+    const fn = ast.declarations[0] as any;
+    expect(fn.inputs[0].type.kind).toBe("ArrayType");
+    expect(fn.output_type.kind).toBe("ArrayType");
+  });
+
+  it("parses generic type syntax Name[T, E]", () => {
+    const source = `fn result
+  input r: Result[string, number]
+  output string
+  "ok"`;
+    const ast = parse(source);
+    expect(ast.declarations.length).toBe(1);
+    const fn = ast.declarations[0] as any;
+    expect(fn.inputs[0].type.kind).toBe("GenericType");
+  });
+});

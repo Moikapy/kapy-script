@@ -284,6 +284,14 @@ export class Lexer {
         let expr = "";
         while (!this.isAtEnd() && depth > 0) {
           const c = this.advance();
+          if (c === '"') {
+            throw new LexError(
+              this.file,
+              this.line,
+              this.column,
+              "String literals inside interpolation are not supported in v0.1. Use a variable instead.",
+            );
+          }
           if (c === "{") depth++;
           if (c === "}") depth--;
           if (depth > 0) expr += c;

@@ -115,4 +115,8 @@ describe("Lexer", () => {
     expect(abc!.span.line).toBe(1);
     expect(def!.span.line).toBe(2);
   });
+
+  it("rejects quotes inside interpolation", () => {
+    expect(() => tokenize('"Hello, {foo("bar")}"')).toThrow(LexError);
+  });
 });

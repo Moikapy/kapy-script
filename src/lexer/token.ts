@@ -15,7 +15,6 @@ export enum TokenType {
   // Literals
   NUMBER,
   STRING,
-  BOOLEAN,
 
   // Identifiers & Keywords
   IDENTIFIER,
