@@ -1,0 +1,13 @@
+agent ResearchAgent
+  input query: string
+  output Report
+
+  tools
+    search_web, read_document, cite_sources
+
+  steps
+    think("Plan research approach for {query}") -> plan
+    search_web(query) -> sources
+    read_document(sources) -> findings
+    cite_sources(findings) -> report
+    return report

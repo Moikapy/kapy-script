@@ -1,0 +1,7 @@
+fn divide
+  input a: number, b: number
+  output Result
+  if b == 0
+    Err("division by zero")
+  else
+    Ok(a / b)

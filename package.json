@@ -1,0 +1,17 @@
+{
+  "name": "kapy-script",
+  "version": "0.1.0",
+  "description": "A programming language designed for AI agent authorship",
+  "main": "src/cli/main.ts",
+  "bin": {
+    "kapy": "src/cli/main.ts"
+  },
+  "scripts": {
+    "dev": "bun run src/cli/main.ts",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "kapy": "bun run src/cli/main.ts"
+  },
+  "keywords": ["language", "compiler", "ai", "transpiler"],
+  "license": "MIT"
+}

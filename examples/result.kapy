@@ -1,0 +1,3 @@
+sealed trait Result
+  case Ok(value: any)
+  case Err(message: string)

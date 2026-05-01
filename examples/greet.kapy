@@ -1,0 +1,4 @@
+fn greet
+  input name: string
+  output string
+  "Hello, {name}!"

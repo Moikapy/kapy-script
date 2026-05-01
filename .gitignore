@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.kapy-cache/
+*.log
+.DS_Store
