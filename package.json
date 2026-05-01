@@ -1,35 +1,42 @@
 {
-  "name": "kapy-script",
+  "name": "@kapy/script",
   "version": "0.1.0",
-  "description": "A programming language designed for AI agent authorship",
-  "keywords": ["language", "compiler", "ai", "transpiler", "kapy"],
+  "description": "The AI-native programming language. A kapy CLI extension for compiling, running, and testing .kapy files.",
+  "keywords": ["kapy-extension", "language", "compiler", "ai", "transpiler", "kapy"],
   "license": "MIT",
   "author": "0xKobold",
   "repository": {
     "type": "git",
     "url": "https://github.com/moikapy/kapy-script"
   },
-  "main": "dist/cli/main.js",
-  "bin": {
-    "kapy": "dist/cli/main.js"
+  "main": "src/extension/index.ts",
+  "types": "src/extension/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/extension/index.ts",
+      "types": "./src/extension/index.ts"
+    }
   },
   "files": [
-    "dist/",
+    "src/",
     "README.md"
   ],
   "scripts": {
-    "build": "bun build src/cli/main.ts --outdir dist/cli --target bun",
     "dev": "bun run src/cli/main.ts",
     "test": "bun test",
     "test:watch": "bun test --watch",
-    "typecheck": "tsc --noEmit",
     "kapy": "bun run src/cli/main.ts",
-    "prepublishOnly": "bun run build"
+    "typecheck": "tsc --noEmit"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@moikapy/kapy": "^0.3.0"
+  },
   "devDependencies": {
     "@types/bun": "^1.3.13",
     "@types/node": "^25.6.0",
     "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "@moikapy/kapy": "^0.3.0"
   }
 }

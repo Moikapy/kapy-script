@@ -5,10 +5,10 @@
 ## Entities
 - [[cli]] — cli module, with 1 source file.
 - [[examples]] — examples module in the codebase
-- [[kapy-script]] — A programming language designed for AI agent authorship. Transpiles to TypeScript, runs on Bun. Phase 2 complete: lexer + parser + type checker all working. 56 tests passing.
 - [[lexer]] — lexer module, with 3 source files, entry point at `src/lexer/index.ts`, exports 6 symbols.
 - [[parser]] — parser module, with 4 source files, entry point at `src/parser/index.ts`, exports 20 symbols.
 - [[src-cli]] — src/cli module in the codebase
+- [[src-extension]] — src/extension module in the codebase
 - [[src-lexer]] — src/lexer module in the codebase
 - [[src-parser]] — src/parser module in the codebase
 - [[src-runtime]] — src/runtime module in the codebase
@@ -17,6 +17,7 @@
 - [[test]] — test module in the codebase
 
 ## Concepts
+- [[kapy-script]] — A programming language designed for AI agent authorship. Transpiles to TypeScript, runs on Bun. Key differentiators: token-efficient syntax (~25-35% fewer tokens than TS), contract-first functions (input/output), built-in AI primitives (llm, embed, tool), algebraic data types, pattern matching, and Result-based error handling with ? operator.
 
 ## Decisions (ADRs)
 - [[adr-001-hand-written-recursive-descent-parser]] — Chose hand-written recursive descent. PEG parsers produce poor error messages and are hard to debug. Recursive descent gives full control over error recovery and messaging, which is critical for a lan
@@ -28,4 +29,4 @@
 
 ---
 
-*Last updated: 2026-05-01 • 14 pages total*
+*Last updated: 2026-05-01 • 16 pages total*
