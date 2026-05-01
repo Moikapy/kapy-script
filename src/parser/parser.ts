@@ -55,7 +55,6 @@ export class Parser {
   private file: string;
   private depth = 0;
   private maxDepth = 500;
-  // TODO: implement step counting for infinite loop detection
   private steps = 0;
   private maxSteps = 10000;
 
@@ -500,7 +499,6 @@ export class Parser {
     while (!this.check(TokenType.DEDENT) && !this.isAtEnd() && iterations < 100) {
       iterations++;
       if (this.check(TokenType.NEWLINE)) { this.advance(); continue; }
-      // console.log(`  [parseBlock] iteration ${iterations}, token: ${TokenType[this.peek().type]} "${this.peek().lexeme}" L${this.peek().span.line}`);
       try {
         const stmt = this.statement();
         if (stmt) stmts.push(stmt);

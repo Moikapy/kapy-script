@@ -1,4 +1,6 @@
 import { describe, it, expect } from "bun:test";
+import { readFileSync } from "fs";
+import { resolve } from "path";
 import { Lexer } from "../src/lexer/lexer";
 import { Parser } from "../src/parser/parser";
 import { TypeChecker, TypeEnv, typesCompatible, typeName } from "../src/typechecker";
@@ -245,8 +247,6 @@ fn bad_match
 // ── Example File Type-Checking ──
 
 describe("Example files type-check", () => {
-  const { readFileSync } = require("fs");
-  const { resolve } = require("path");
   const examplesDir = resolve(__dirname, "..", "examples");
   const examples = ["greet.kapy", "result.kapy", "agent.kapy"];
 

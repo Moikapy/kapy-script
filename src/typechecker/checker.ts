@@ -303,6 +303,9 @@ export class TypeChecker {
       }
     }
 
+    // Register think as a builtin in agent scope
+    agentEnv.define("think", this.fnType([this.primitive("any")], this.primitive("any")));
+
     const savedEnv = this.env;
     this.env = agentEnv;
 
