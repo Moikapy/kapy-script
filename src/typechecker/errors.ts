@@ -1,6 +1,8 @@
 // Kapy-script Type Check Errors
 
-export class TypeCheckError extends Error {
+import { type KapyError } from "../parser/errors";
+
+export class TypeCheckError extends Error implements KapyError {
   constructor(
     public readonly file: string,
     public readonly line: number,

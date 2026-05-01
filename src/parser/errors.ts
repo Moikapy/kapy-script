@@ -1,6 +1,14 @@
 // Kapy-script Parse Error
 
-export class ParseError extends Error {
+/** Common error shape for both LexError and ParseError */
+export interface KapyError {
+  readonly file: string;
+  readonly line: number;
+  readonly column: number;
+  readonly message: string;
+}
+
+export class ParseError extends Error implements KapyError {
   constructor(
     public readonly file: string,
     public readonly line: number,
@@ -13,7 +21,7 @@ export class ParseError extends Error {
 }
 
 /** Create a formatted error message with source context */
-export function formatParseError(error: ParseError, source: string): string {
+export function formatParseError(error: KapyError, source: string): string {
   const lines = source.split("\n");
   const lineNum = error.line;
   const colNum = error.column;

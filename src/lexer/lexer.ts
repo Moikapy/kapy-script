@@ -5,7 +5,9 @@ import { Token, TokenType, KEYWORDS } from "./token";
 import type { TokenSpan } from "./token";
 
 /** Error thrown during lexing */
-export class LexError extends Error {
+import { type KapyError } from "../parser/errors";
+
+export class LexError extends Error implements KapyError {
   constructor(
     public readonly file: string,
     public readonly line: number,

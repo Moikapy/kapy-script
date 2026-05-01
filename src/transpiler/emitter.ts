@@ -25,6 +25,7 @@ export class Emitter {
   private indent: number = 0;
   private imports: Set<string> = new Set();
   private runtimeImports: Set<string> = new Set();
+  private testImports: Set<string> = new Set();
 
   /** Transpile a complete program to TypeScript */
   private anyType: KapyType = { kind: "PrimitiveType", name: "any", span: { start: { line: 0, column: 0, offset: 0, length: 0, file: "<synth>" }, end: { line: 0, column: 0, offset: 0, length: 0, file: "<synth>" } } };
@@ -34,6 +35,7 @@ export class Emitter {
     this.indent = 0;
     this.imports = new Set();
     this.runtimeImports = new Set();
+    this.testImports = new Set();
 
     // First pass: collect all imports needed
     for (const decl of program.declarations) {
@@ -43,6 +45,12 @@ export class Emitter {
     // Emit runtime imports
     if (this.runtimeImports.size > 0) {
       this.emitLine(`import { ${[...this.runtimeImports].join(", ")} } from "@kapy/runtime";`);
+      this.emitLine("");
+    }
+
+    // Emit test imports
+    if (this.testImports.size > 0) {
+      this.emitLine(`import { ${[...this.testImports].join(", ")} } from "bun:test";`);
       this.emitLine("");
     }
 
@@ -95,6 +103,9 @@ export class Emitter {
         break;
       case "AgentDecl":
         this.runtimeImports.add("agent");
+        break;
+      case "TestDecl":
+        this.testImports.add("test");
         break;
       default:
         break;
@@ -326,8 +337,14 @@ export class Emitter {
 
       case "InterpolatedString": {
         const parts = expr.parts.map(p => {
-          if ("text" in p) return JSON.stringify(p.text).slice(1, -1); // Remove surrounding quotes, keep escapes
-          return `\$\{${p.expr}\}`;
+          if ("text" in p) {
+            // Escape for template literal context
+            let escaped = p.text
+              .replace(/`/g, "\\`")       // escape backticks
+              .replace(/\$\{/g, "\\${");  // escape template interpolation
+            return escaped;
+          }
+          return `\${${p.expr}}`;
         });
         return `\`${parts.join("")}\``;
       }
@@ -379,20 +396,21 @@ export class Emitter {
       }
 
       case "IfExpr": {
+        // if/else is an expression in kapy-script — emit as IIFE
         const condition = this.emitExpression(expr.condition);
-        const thenBody = expr.then_branch.statements.map(s => this.emitStatement_ts(s)).join("\n    ");
-        let result = `if (${condition}) {\n    ${thenBody}\n  }`;
+        const thenBody = this.emitBlockAsReturnBody(expr.then_branch);
+        let ifCode = `if (${condition}) {\n    ${thenBody}\n  }`;
 
         if (expr.else_branch) {
           if (expr.else_branch.kind === "IfExpr") {
-            result += ` else ${this.emitExpression(expr.else_branch)}`;
+            ifCode += ` else ${this.emitExpression(expr.else_branch)}`;
           } else {
-            const elseBody = (expr.else_branch as Block).statements.map(s => this.emitStatement_ts(s)).join("\n    ");
-            result += ` else {\n    ${elseBody}\n  }`;
+            const elseBody = this.emitBlockAsReturnBody(expr.else_branch as Block);
+            ifCode += ` else {\n    ${elseBody}\n  }`;
           }
         }
 
-        return result;
+        return `(() => {\n  ${ifCode}\n})()`;
       }
 
       case "ForExpr": {
@@ -471,6 +489,24 @@ export class Emitter {
         }
         return `${this.emitExpression(stmt.expr)};`;
     }
+  }
+
+  /** Emit a block's statements with the last expression as a return value.
+   *  Used inside IIFEs where the block result must be returned. */
+  private emitBlockAsReturnBody(block: Block): string {
+    const stmts = block.statements;
+    if (stmts.length === 0) return "return undefined;";
+    const lines = stmts.slice(0, -1).map(s => this.emitStatement_ts(s));
+    const last = stmts[stmts.length - 1];
+    // Last statement becomes the return value
+    if (last.kind === "ExpressionStmt") {
+      lines.push(`return ${this.emitExpression(last.expr)};`);
+    } else if (last.kind === "ReturnStmt") {
+      lines.push(`return ${this.emitExpression(last.value)};`);
+    } else {
+      lines.push(this.emitStatement_ts(last));
+    }
+    return lines.join("\n    ");
   }
 
   private emitPattern(pattern: Pattern, _subject: string): string {

@@ -1,6 +1,27 @@
 // Kapy-script Runtime — @kapy/runtime
 // Core types and builtins that kapy-script transpiled code depends on
 
+import { get_llm_mock, get_embed_mock } from "./mock";
+
+// ── Environment-safe helper ──
+
+function getEnv(key: string): string | undefined {
+  if (typeof process !== "undefined" && process.env) {
+    return process.env[key];
+  }
+  return undefined;
+}
+
+// ── OpenAI API Types ──
+
+interface OpenAIChatResponse {
+  choices?: { message?: { content?: string } }[];
+}
+
+interface OpenAIEmbedResponse {
+  data?: { embedding?: number[] }[];
+}
+
 // ── Result Type ──
 
 export type ResultOk<T> = { readonly _tag: "Ok"; readonly value: T };
@@ -23,16 +44,7 @@ export function isErr<T, E>(result: Result<T, E>): result is ResultErr<E> {
   return result._tag === "Err";
 }
 
-// Extend Result with unwrap methods
-declare module "./index" {
-  interface ResultUnwrap<T, E> {
-    unwrap(): T;
-    unwrapOrCrash(): T;
-    unwrapOr(defaultValue: T): T;
-  }
-}
-
-// Utility: unwrap operators for Result
+// Result unwrap operators for kapy-script ? and ! operators
 export function unwrap<T, E>(result: Result<T, E>): T {
   if (result._tag === "Ok") return result.value;
   throw new Error(`Result.unwrap() called on Err: ${JSON.stringify(result)}`);
@@ -70,10 +82,16 @@ export function configureLLM(config: Partial<LLMConfig>): void {
 }
 
 export async function llm(prompt: string, input?: any, config?: Partial<LLMConfig>): Promise<Result<string, string>> {
+  // Check for mock first
+  const mock = get_llm_mock();
+  if (mock !== null) {
+    return Ok(mock);
+  }
+
   const mergedConfig = { ...defaultLLMConfig, ...config };
 
   try {
-    const apiKey = mergedConfig.apiKey || process.env.OPENAI_API_KEY;
+    const apiKey = mergedConfig.apiKey || getEnv("OPENAI_API_KEY");
     if (!apiKey) {
       return Err("OPENAI_API_KEY not set. Set it via environment variable or configureLLM().");
     }
@@ -100,7 +118,7 @@ export async function llm(prompt: string, input?: any, config?: Partial<LLMConfi
       return Err(`LLM API error: ${response.status} ${error}`);
     }
 
-    const data = await response.json() as any;
+    const data = await response.json() as OpenAIChatResponse;
     const text = data.choices?.[0]?.message?.content || "";
     return Ok(text);
   } catch (error) {
@@ -111,8 +129,14 @@ export async function llm(prompt: string, input?: any, config?: Partial<LLMConfi
 // ── Embed Builtin ──
 
 export async function embed(text: string, config?: Partial<LLMConfig>): Promise<Result<number[], string>> {
+  // Check for mock first
+  const mockVector = get_embed_mock();
+  if (mockVector !== null) {
+    return Ok(mockVector);
+  }
+
   try {
-    const apiKey = config?.apiKey || process.env.OPENAI_API_KEY;
+    const apiKey = config?.apiKey || getEnv("OPENAI_API_KEY");
     if (!apiKey) {
       return Err("OPENAI_API_KEY not set for embeddings.");
     }
@@ -134,7 +158,7 @@ export async function embed(text: string, config?: Partial<LLMConfig>): Promise<
       return Err(`Embedding API error: ${response.status} ${error}`);
     }
 
-    const data = await response.json() as any;
+    const data = await response.json() as OpenAIEmbedResponse;
     const vector = data.data?.[0]?.embedding || [];
     return Ok(vector);
   } catch (error) {
@@ -147,6 +171,11 @@ export async function embed(text: string, config?: Partial<LLMConfig>): Promise<
 export function print(value: any): void {
   console.log(value);
 }
+
+// ── Kapy Test Runner ──
+
+// Re-export Bun test globals for transpiled code
+export { test, describe, expect } from "bun:test";
 
 // ── Runtime Utilities ──
 
@@ -175,3 +204,7 @@ export const KapyRuntime = {
     return Promise.race([fn(), timeout]);
   },
 };
+
+// ── Re-export mock functions ──
+
+export { mock_llm, mock_embed, mock_tool, mock_reset } from "./mock";

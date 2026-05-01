@@ -1,7 +1,7 @@
 // Kapy-script Cache — content-hash-based transpilation cache
 // Stores .ts output in .kapy-cache/ directory
 
-import { existsSync, mkdirSync, writeFileSync, statSync, unlinkSync } from "fs";
+import { existsSync, mkdirSync, writeFileSync, statSync, unlinkSync, readdirSync } from "fs";
 import { join, basename } from "path";
 import { createHash } from "crypto";
 
@@ -90,7 +90,7 @@ export class Cache {
 
   /** Clear all cache entries */
   clear(): void {
-    const files = require("fs").readdirSync(this.cacheDir);
+    const files = readdirSync(this.cacheDir);
     for (const file of files) {
       if (file.endsWith(".ts") || file.endsWith(".js") || file.endsWith(".map")) {
         try { unlinkSync(join(this.cacheDir, file)); } catch {}

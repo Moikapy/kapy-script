@@ -6,17 +6,25 @@
 - [[lexer]]
 - [[parser]]
 - [[type-checker]]
+- [[transpiler]]
+- [[runtime]]
 - [[cli]]
 
 ## Implementation State
-- **Lexer**: ✅ Phase 1 Complete (427 lines)
-- **Parser**: ✅ Phase 1 Complete (1,270 lines)
-- **Type Checker**: ✅ Phase 2 Complete (770 lines — local inference, ADTs, patterns, Result operators)
-- **Transpiler**: ❌ Phase 3 (not started)
-- **Runtime**: ❌ Phase 3 (not started)
-- **CLI**: ✅ Partial — `kapy run/check` active, `repl`, `test` planned
+- **Lexer**: ✅ Phase 1 Complete (570 lines)
+- **Parser**: ✅ Phase 1 Complete (1,769 lines)
+- **Type Checker**: ✅ Phase 2 Complete (841 lines)
+- **Transpiler**: ✅ Phase 3 Complete (646 lines)
+- **Runtime**: ✅ Phase 3 Complete (176 lines)
+- **CLI**: ✅ Phase 3 — `kapy run` executes end-to-end
 - **Stdlib**: ❌ Phase 5 (not started)
-- **Test suite**: ✅ 56 pass, 0 fail, 147 assertions
+- **Test suite**: ✅ 94+ passing across 6 test files
+
+## First Real Execution
+```bash
+$ kapy run examples/hello.kapy
+Hello, kapy-script!
+```
 
 ## Core Syntax Features
 - Indentation-based blocks (no braces)
@@ -42,13 +50,26 @@
 - ADT types: `sealed trait` with case constructors
 - Union and nullable types declared in AST (not yet enforced)
 
+## Compile Pipeline
+```
+.kapy source
+  → Lexer.tokenize()
+  → Parser.parse()
+  → TypeChecker.check()
+  → Emitter.emit()
+  → Cache.set()
+  → Bun.run(tsPath)
+```
+
 ## See Also
-- [[lexer]] — Tokenizer implementation (Phase 1)
-- [[parser]] — AST parser implementation (Phase 1)
+- [[lexer]] — Tokenizer (Phase 1)
+- [[parser]] — AST parser (Phase 1)
 - [[type-checker]] — Type system (Phase 2)
-- [[cli]] — Command-line interface (Phase 1-2)
-- [[adr-001-hand-written-recursive-descent-parser]] — Parser architecture decision
-- [[adr-002-indentation-based-syntax-with-indent-dedent-tokens]] — Indentation syntax decision
-- [[adr-003-transpile-to-typescript--execute-via-bun]] — Runtime strategy decision
-- [[adr-004-two-pass-type-checker--register-then-check-]] — Type checker phase architecture
+- [[transpiler]] — TS emitter (Phase 3)
+- [[runtime]] — @kapy/runtime library (Phase 3)
+- [[cli]] — Command-line interface
+- [[adr-001-hand-written-recursive-descent-parser]] — Parser architecture
+- [[adr-002-indentation-based-syntax-with-indent-dedent-tokens]] — Indentation syntax
+- [[adr-003-transpile-to-typescript--execute-via-bun]] — Runtime strategy
+- [[adr-004-two-pass-type-checker--register-then-check-]] — Type checker architecture
 - [[adr-005-structural-type-compatibility-with-any-coercion]] — Type system design
