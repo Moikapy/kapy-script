@@ -4,13 +4,14 @@
 
 ## Entities
 - [[cli]] — cli module, with 1 source file.
-- [[examples]] — examples module.
+- [[examples]] — examples module in the codebase
 - [[lexer]] — lexer module, with 3 source files, entry point at `src/lexer/index.ts`, exports 6 symbols.
 - [[parser]] — parser module, with 4 source files, entry point at `src/parser/index.ts`, exports 20 symbols.
-- [[src-cli]] — src/cli module, with 1 source file.
-- [[src-lexer]] — src/lexer module, with 3 source files, entry point at `src/lexer/index.ts`, exports 6 symbols.
-- [[src-parser]] — src/parser module, with 4 source files, entry point at `src/parser/index.ts`, exports 20 symbols.
-- [[test]] — test module, with 3 source files.
+- [[src-cli]] — src/cli module in the codebase
+- [[src-lexer]] — src/lexer module in the codebase
+- [[src-parser]] — src/parser module in the codebase
+- [[src-typechecker]] — src/typechecker module in the codebase
+- [[test]] — test module in the codebase
 
 ## Concepts
 - [[kapy-script]] — A programming language designed for AI agent authorship. Transpiles to TypeScript, runs on Bun. Key differentiators: token-efficient syntax (~25-35% fewer tokens than TS), contract-first functions (input/output), built-in AI primitives (llm, embed, tool), algebraic data types, pattern matching, and Result-based error handling with ? operator.
@@ -25,4 +26,4 @@
 
 ---
 
-*Last updated: 2026-05-01 • 11 pages total*
+*Last updated: 2026-05-01 • 12 pages total*

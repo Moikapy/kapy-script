@@ -120,7 +120,13 @@ export class Parser {
     this.consumeNewline();
     this.consume(TokenType.INDENT, "Expected indented block after function declaration.");
 
-    const inputs = this.parseInputDecl();
+    // Parse multiple input declarations
+    const inputs: InputParam[] = [];
+    while (this.check(TokenType.INPUT)) {
+      const parsed = this.parseInputDecl();
+      inputs.push(...parsed);
+    }
+
     const outputType = this.parseOutputDecl();
     const body = this.parseFnBodyBlock();
 
