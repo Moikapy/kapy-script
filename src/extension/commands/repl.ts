@@ -12,7 +12,7 @@ import * as readline from "node:readline";
 
 const VERSION = "0.1.0";
 
-export async function replCommand(ctx: CommandContext): Promise<void> {
+export async function replCommand(_ctx: CommandContext): Promise<void> {
 	console.log(`kapy-script v${VERSION} — Type :help for commands`);
 	console.log("");
 

@@ -123,7 +123,7 @@ function runFile(filePath: string, ctx: CommandContext): void {
 	const nodePath = runtimePaths.join(":");
 
 	// Execute via Bun
-	const result = ctx.spawn(["bun", "run", tsPath], {
+	const result = await ctx.spawn(["bun", "run", tsPath], {
 		tty: true,
 		env: { NODE_PATH: nodePath },
 	});

@@ -1,6 +1,6 @@
 // Kapy-script project scaffolding — kapy init <name>
 
-import { mkdirSync, writeFileSync } from "fs";
+import { mkdirSync, writeFileSync, symlinkSync, existsSync } from "fs";
 import { join, resolve } from "path";
 
 export interface InitOptions {
@@ -91,6 +91,20 @@ export function initProject(options: InitOptions): void {
   writeFileSync(join(baseDir, "README.md"), README(name), "utf-8");
   writeFileSync(join(baseDir, "src", "main.kapy"), MAIN_KAPY(name), "utf-8");
   writeFileSync(join(baseDir, "test", "main.test.kapy"), TEST_KAPY, "utf-8");
+
+  // Create node_modules/@kapy/runtime symlink to local runtime
+  const runtimeSrc = resolve(__dirname, "..", "runtime");
+  const nmDir = join(baseDir, "node_modules");
+  const kapyDir = join(nmDir, "@kapy");
+  const runtimeLink = join(kapyDir, "runtime");
+  if (existsSync(runtimeSrc)) {
+    mkdirSync(kapyDir, { recursive: true });
+    try {
+      symlinkSync(runtimeSrc, runtimeLink, "junction");
+    } catch {
+      // Symlink may already exist or creation may fail on some systems
+    }
+  }
 
   console.log(`✅ Created project '${name}' at ${baseDir}`);
   console.log("");

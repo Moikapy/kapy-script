@@ -123,7 +123,7 @@ function runTestFile(filePath: string, ctx: CommandContext): TestResult {
 	checker.setFile(filePath);
 	const typeErrors = checker.check(ast);
 	for (const error of typeErrors) {
-		const msg = `Type error at ${error.span.start.line}:${error.span.start.column} — ${error.message}`;
+		const msg = `Type error at ${error.line}:${error.column} — ${error.message}`;
 		console.log(`    ⚠️  ${msg}`);
 		errors.push(msg);
 	}
@@ -156,7 +156,7 @@ function runTestFile(filePath: string, ctx: CommandContext): TestResult {
 	// Use relative path for bun test (it needs ./ prefix)
 	const relTsPath = tsPath.startsWith(resolve(".")) ? "./" + tsPath.slice(resolve(".").length + 1) : tsPath;
 
-	const result = ctx.spawn(["bun", "test", relTsPath], {
+	const result = await ctx.spawn(["bun", "test", relTsPath], {
 		env: { NODE_PATH: nodePath },
 	});
 

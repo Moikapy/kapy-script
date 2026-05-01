@@ -106,6 +106,15 @@ export class Emitter {
         break;
       case "TestDecl":
         this.testImports.add("test");
+        this.collectExprImports(decl.body);
+        // Check for print/llm/embed/tool calls in test body
+        const testBodyStr = JSON.stringify(decl.body);
+        if (testBodyStr.includes('"kind":"CallExpr"')) {
+          this.runtimeImports.add("print");
+        }
+        if (testBodyStr.includes('"kind":"ResultUnwrapExpr"') || testBodyStr.includes('"kind":"CrashUnwrapExpr"')) {
+          this.runtimeImports.add("Result");
+        }
         break;
       default:
         break;
@@ -263,7 +272,7 @@ export class Emitter {
   }
 
   private emitTestDecl(decl: TestDecl): void {
-    this.emitLine(`test("${decl.name}", () => {`);
+    this.emitLine(`test("${decl.name}", async () => {`);
     this.indent++;
     this.emitBlock(decl.body);
     this.indent--;

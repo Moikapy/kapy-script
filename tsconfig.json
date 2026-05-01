@@ -17,5 +17,5 @@
     "types": ["node", "bun"]
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", ".kapy-cache"]
+  "exclude": ["node_modules", "dist", ".kapy-cache", "src/extension"]
 }

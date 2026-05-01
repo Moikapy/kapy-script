@@ -68,6 +68,17 @@ export interface LLMConfig {
   apiKey?: string;
   temperature?: number;
   maxTokens?: number;
+  /** Request timeout in milliseconds (default: 30000) */
+  timeout?: number;
+}
+
+/** Error classification for LLM API errors */
+export type LLMErrorKind = "auth" | "rate_limit" | "context_overflow" | "server" | "timeout" | "network" | "unknown";
+
+export interface LLMError {
+  kind: LLMErrorKind;
+  status?: number;
+  message: string;
 }
 
 let defaultLLMConfig: LLMConfig = {
@@ -75,10 +86,20 @@ let defaultLLMConfig: LLMConfig = {
   model: "gpt-4",
   temperature: 0.7,
   maxTokens: 2048,
+  timeout: 30000,
 };
 
 export function configureLLM(config: Partial<LLMConfig>): void {
   defaultLLMConfig = { ...defaultLLMConfig, ...config };
+}
+
+/** Classify an HTTP status code into an error kind */
+function classifyHttpError(status: number): LLMErrorKind {
+  if (status === 401 || status === 403) return "auth";
+  if (status === 429) return "rate_limit";
+  if (status === 413) return "context_overflow";
+  if (status >= 500) return "server";
+  return "unknown";
 }
 
 export async function llm(prompt: string, input?: any, config?: Partial<LLMConfig>): Promise<Result<string, string>> {
@@ -96,32 +117,45 @@ export async function llm(prompt: string, input?: any, config?: Partial<LLMConfi
       return Err("OPENAI_API_KEY not set. Set it via environment variable or configureLLM().");
     }
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: mergedConfig.model,
-        messages: [
-          { role: "system", content: typeof input === "string" ? input : "" },
-          { role: "user", content: prompt },
-        ],
-        temperature: mergedConfig.temperature,
-        max_tokens: mergedConfig.maxTokens,
-      }),
-    });
+    const controller = new AbortController();
+    const timeoutMs = mergedConfig.timeout ?? 30000;
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-    if (!response.ok) {
-      const error = await response.text();
-      return Err(`LLM API error: ${response.status} ${error}`);
+    try {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: mergedConfig.model,
+          messages: [
+            { role: "system", content: typeof input === "string" ? input : "" },
+            { role: "user", content: prompt },
+          ],
+          temperature: mergedConfig.temperature,
+          max_tokens: mergedConfig.maxTokens,
+        }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const body = await response.text();
+        const kind = classifyHttpError(response.status);
+        return Err(`LLM ${kind} error (${response.status}): ${body}`);
+      }
+
+      const data = await response.json() as OpenAIChatResponse;
+      const text = data.choices?.[0]?.message?.content || "";
+      return Ok(text);
+    } finally {
+      clearTimeout(timer);
     }
-
-    const data = await response.json() as OpenAIChatResponse;
-    const text = data.choices?.[0]?.message?.content || "";
-    return Ok(text);
   } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return Err(`LLM timeout after ${mergedConfig.timeout ?? 30000}ms`);
+    }
     return Err(`LLM call failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
@@ -141,27 +175,40 @@ export async function embed(text: string, config?: Partial<LLMConfig>): Promise<
       return Err("OPENAI_API_KEY not set for embeddings.");
     }
 
-    const response = await fetch("https://api.openai.com/v1/embeddings", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "text-embedding-3-small",
-        input: text,
-      }),
-    });
+    const controller = new AbortController();
+    const timeoutMs = config?.timeout ?? 30000;
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-    if (!response.ok) {
-      const error = await response.text();
-      return Err(`Embedding API error: ${response.status} ${error}`);
+    try {
+      const response = await fetch("https://api.openai.com/v1/embeddings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "text-embedding-3-small",
+          input: text,
+        }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const body = await response.text();
+        const kind = classifyHttpError(response.status);
+        return Err(`Embed ${kind} error (${response.status}): ${body}`);
+      }
+
+      const data = await response.json() as OpenAIEmbedResponse;
+      const vector = data.data?.[0]?.embedding || [];
+      return Ok(vector);
+    } finally {
+      clearTimeout(timer);
     }
-
-    const data = await response.json() as OpenAIEmbedResponse;
-    const vector = data.data?.[0]?.embedding || [];
-    return Ok(vector);
   } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return Err(`Embed timeout after ${config?.timeout ?? 30000}ms`);
+    }
     return Err(`Embed call failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
@@ -180,13 +227,6 @@ export { test, describe, expect } from "bun:test";
 // ── Runtime Utilities ──
 
 export const KapyRuntime = {
-  createAgent(options: { tools: string[]; timeout?: number }) {
-    return {
-      tools: options.tools,
-      timeout: options.timeout || 30000,
-    };
-  },
-
   async parallel(assignments: Record<string, any>): Promise<Record<string, any>> {
     const entries = Object.entries(assignments);
     const promises = entries.map(([key, fn]) => {

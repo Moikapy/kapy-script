@@ -31,7 +31,7 @@ export function watchAndRun(filePath: string, runCallback: (file: string) => voi
 	let watcher: ReturnType<typeof watch> | null = null;
 
 	try {
-		watcher = watch(dir, (event, filename) => {
+		watcher = watch(dir, (_event, filename) => {
 			if (filename && filename.endsWith(".kapy")) {
 				debouncedRun();
 			}
