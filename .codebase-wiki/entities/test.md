@@ -13,6 +13,7 @@
 - `test/parser.test.ts`
 - `test/phase4.test.ts`
 - `test/runtime.test.ts`
+- `test/stdlib.test.ts`
 - `test/transpiler.test.ts`
 - `test/typechecker.test.ts`
 

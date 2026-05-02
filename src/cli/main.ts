@@ -13,6 +13,8 @@ import { Cache } from "../transpiler/cache";
 import { initProject } from "./init";
 import { runTests } from "./test-runner";
 import { startRepl } from "./repl";
+import { formatFile } from "./fmt";
+import { lintFile, formatFinding } from "./lint";
 import { watchAndRun } from "./watch";
 
 const VERSION = "0.1.0";
@@ -25,6 +27,10 @@ Usage:
   kapy run <file>        Compile and execute a .kapy file
   kapy run --watch <file> Re-run on file changes
   kapy check <file>      Parse and type-check a .kapy file
+  kapy fmt <file>        Format a .kapy file
+  kapy fmt --check <file> Check if file needs formatting
+  kapy lint <file>        Lint a .kapy file
+  kapy lint --strict <file> Treat warnings as errors
   kapy test [path]       Run test declarations
   kapy init <name>       Scaffold a new project
   kapy repl              Start interactive REPL
@@ -224,6 +230,58 @@ if (args[0] === "run") {
       break;
     case "test":
       runTests(args[1]);
+      break;
+    case "fmt":
+      if (!args[1] || args[1] === "--help") {
+        console.log("Usage: kapy fmt <file> [options]");
+        console.log("");
+        console.log("Options:");
+        console.log("  --check    Check if file needs formatting (exit 1 if changes needed)");
+        console.log("  --dry-run  Print formatted output to stdout");
+        process.exit(args[1] === "--help" ? 0 : 1);
+      }
+      {
+        const fmtFile = args[1].startsWith("--") ? args[2] : args[1];
+        const check = args.includes("--check");
+        const dryRun = args.includes("--dry-run");
+        if (!fmtFile) {
+          console.error("Error: 'fmt' requires a file path. Usage: kapy fmt <file>");
+          process.exit(1);
+        }
+        const result = formatFile(fmtFile, { check, dryRun });
+        if (check && result.changed) process.exit(1);
+      }
+      break;
+    case "lint":
+      if (!args[1] || args[1] === "--help") {
+        console.log("Usage: kapy lint <file> [options]");
+        console.log("");
+        console.log("Options:");
+        console.log("  --strict    Treat warnings as errors (exit 1)");
+        process.exit(args[1] === "--help" ? 0 : 1);
+      }
+      {
+        const lintFilePath = args[1].startsWith("--") ? args[2] : args[1];
+        const strict = args.includes("--strict");
+        if (!lintFilePath) {
+          console.error("Error: 'lint' requires a file path. Usage: kapy lint <file>");
+          process.exit(1);
+        }
+        const findings = lintFile(lintFilePath, { strict });
+        for (const finding of findings) {
+          console.log(formatFinding(finding));
+        }
+        const errorCount = findings.filter(f => f.severity === "error").length;
+        const warningCount = findings.filter(f => f.severity === "warning").length;
+        if (findings.length === 0) {
+          console.log(`✓ No lint issues found in ${lintFilePath}`);
+        } else {
+          console.log(`\n  ${errorCount} error(s), ${warningCount} warning(s)`);
+        }
+        if (errorCount > 0 || (strict && findings.length > 0)) {
+          process.exit(1);
+        }
+      }
       break;
     case "init":
       if (!args[1]) {

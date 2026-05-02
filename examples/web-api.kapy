@@ -1,0 +1,13 @@
+# Web API example — demonstrates kapy/http and kapy/json
+# Run: kapy run examples/web-api.kapy
+
+import kapy/http
+import kapy/json
+
+fn handle_request
+  input req: any
+  output any
+  match req.method
+    "GET" -> http.get("https://api.example.com/data")
+    "POST" -> http.post("https://api.example.com/data", json.stringify(req.body))
+    _ -> { status: 404, body: "Not found" }

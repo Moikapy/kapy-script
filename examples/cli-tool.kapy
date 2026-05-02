@@ -1,0 +1,12 @@
+# CLI tool example — demonstrates kapy/fs and kapy/json
+# Reads a config file and prints its contents
+# Run: kapy run examples/cli-tool.kapy
+
+import kapy/fs
+import kapy/json
+
+fn main
+  output any
+  data = fs.readFile("config.json")
+  config = json.parse(data)
+  print(config)
