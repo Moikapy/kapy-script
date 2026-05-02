@@ -1,6 +1,6 @@
 fn divide
   input a: number, b: number
-  output Result
+  output any
   if b == 0
     Err("division by zero")
   else

@@ -18,6 +18,9 @@ const KAPY_PKG = (name: string) => `name: ${name}
 version: 0.1.0
 entry: src/main.kapy
 
+extensions
+  @kapy/script
+
 dependencies
   @kapy/runtime: ^0.1.0
 
@@ -78,6 +81,8 @@ kapy check src/main.kapy
 export function initProject(options: InitOptions): void {
   const name = options.name;
   const baseDir = options.dir ? resolve(options.dir, name) : resolve(name);
+  // Use just the directory name as the project name (not the full path)
+  const projectName = baseDir.split("/").pop() || name;
 
   // Create directories
   mkdirSync(join(baseDir, "src"), { recursive: true });
@@ -85,11 +90,11 @@ export function initProject(options: InitOptions): void {
   mkdirSync(join(baseDir, ".kapy-cache"), { recursive: true });
 
   // Write project files
-  writeFileSync(join(baseDir, "kapy.pkg"), KAPY_PKG(name), "utf-8");
-  writeFileSync(join(baseDir, "package.json"), PACKAGE_JSON(name), "utf-8");
+  writeFileSync(join(baseDir, "kapy.pkg"), KAPY_PKG(projectName), "utf-8");
+  writeFileSync(join(baseDir, "package.json"), PACKAGE_JSON(projectName), "utf-8");
   writeFileSync(join(baseDir, ".gitignore"), GITIGNORE, "utf-8");
-  writeFileSync(join(baseDir, "README.md"), README(name), "utf-8");
-  writeFileSync(join(baseDir, "src", "main.kapy"), MAIN_KAPY(name), "utf-8");
+  writeFileSync(join(baseDir, "README.md"), README(projectName), "utf-8");
+  writeFileSync(join(baseDir, "src", "main.kapy"), MAIN_KAPY(projectName), "utf-8");
   writeFileSync(join(baseDir, "test", "main.test.kapy"), TEST_KAPY, "utf-8");
 
   // Create node_modules/@kapy/runtime symlink to local runtime

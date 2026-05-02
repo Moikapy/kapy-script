@@ -1,14 +1,12 @@
-# src/typechecker
+# docs
 
-> **Summary**: src/typechecker module in the codebase.
+> **Summary**: docs module in the codebase.
 
 ## Location
-- **Files**: 3 source files
+- **Files**: 0 source files
 
 ## Key Files
-- `src/typechecker/checker.ts`
-- `src/typechecker/errors.ts`
-- `src/typechecker/index.ts`
+- (no files tracked)
 
 ## Dependencies
 - (to be discovered)

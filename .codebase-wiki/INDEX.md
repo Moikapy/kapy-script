@@ -4,6 +4,7 @@
 
 ## Entities
 - [[cli]] — Command-line interface for kapy-script. 6 commands: run (with --watch), check, test, init, repl, --version/--help. Entry point at src/cli/main.ts with modules for init (project scaffolding), pkg (manifest parsing), repl (interactive), test-runner (discovers and runs .kapy test declarations), and watch (file watcher). All commands are wired and working.
+- [[docs]] — docs module in the codebase
 - [[examples]] — examples module in the codebase
 - [[lexer]] — lexer module, with 3 source files, entry point at `src/lexer/index.ts`, exports 6 symbols.
 - [[parser]] — Recursive descent parser for kapy-script. 1,290 lines. All v0.1 syntax parses correctly including agent, trait, impl, parallel, with, and match. Former infinite-loop bugs fixed: synchronize() now advances past error tokens and DEDENTs, DEDENT loops have isAtEnd() guards, stepStatement() handles return, declaration() skips stray DEDENTs. Error recovery works for unclosed parens, invalid keywords, and missing block bodies.
@@ -29,4 +30,4 @@
 
 ---
 
-*Last updated: 2026-05-01 • 16 pages total*
+*Last updated: 2026-05-02 • 17 pages total*

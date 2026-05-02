@@ -137,7 +137,7 @@ function runTestFile(filePath: string): TestResult {
   const typeErrors = checker.check(ast);
   if (typeErrors.length > 0) {
     for (const error of typeErrors) {
-      const msg = `Type error at ${error.line}:${error.column} — ${error.message}`;
+      const msg = `Type error at ${error.span.start.line}:${error.span.start.column} — ${error.message}`;
       console.log(`    ⚠️  ${msg}`);
       errors.push(msg);
     }
@@ -166,16 +166,19 @@ function runTestFile(filePath: string): TestResult {
   writeFileSync(tsPath, testCode, "utf-8");
 
   try {
-    // bun test needs relative path from cwd
-    const cwd = process.cwd();
-    const relTsPath = tsPath.startsWith(cwd) ? "./" + tsPath.slice(cwd.length + 1) : "./" + tsPath;
-    const proc = Bun.spawnSync(["bun", "test", relTsPath], {
+    // bun test requires paths relative to the working directory.
+    // We cd into the cache directory so the test filename is just the basename.
+    const cwdOverride = dirname(tsPath);
+    const testFilename = baseName + ".test.ts";
+    const proc = Bun.spawnSync(["bun", "test", testFilename], {
       stdout: "pipe",
       stderr: "pipe",
+      cwd: cwdOverride,
       env: {
         ...process.env,
         NODE_PATH: [
           join(resolve("."), "node_modules"),
+          join(cwdOverride, "..", "node_modules"),
           resolve(__dirname, ".."),
         ].join(":"),
       },

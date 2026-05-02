@@ -16,6 +16,9 @@ const KAPY_PKG = (name: string) => `name: ${name}
 version: 0.1.0
 entry: src/main.kapy
 
+extensions
+  @kapy/script
+
 dependencies
   @kapy/runtime: ^0.1.0
 
@@ -71,15 +74,18 @@ export async function initCommand(ctx: CommandContext): Promise<void> {
 
 	const baseDir = resolve(name);
 
+	// Use just the directory name as project name
+	const projectName = baseDir.split("/").pop() || name;
+
 	mkdirSync(join(baseDir, "src"), { recursive: true });
 	mkdirSync(join(baseDir, "test"), { recursive: true });
 	mkdirSync(join(baseDir, ".kapy-cache"), { recursive: true });
 
-	writeFileSync(join(baseDir, "kapy.pkg"), KAPY_PKG(name), "utf-8");
-	writeFileSync(join(baseDir, "package.json"), PACKAGE_JSON(name), "utf-8");
+	writeFileSync(join(baseDir, "kapy.pkg"), KAPY_PKG(projectName), "utf-8");
+	writeFileSync(join(baseDir, "package.json"), PACKAGE_JSON(projectName), "utf-8");
 	writeFileSync(join(baseDir, ".gitignore"), GITIGNORE, "utf-8");
-	writeFileSync(join(baseDir, "README.md"), README(name), "utf-8");
-	writeFileSync(join(baseDir, "src", "main.kapy"), MAIN_KAPY(name), "utf-8");
+	writeFileSync(join(baseDir, "README.md"), README(projectName), "utf-8");
+	writeFileSync(join(baseDir, "src", "main.kapy"), MAIN_KAPY(projectName), "utf-8");
 	writeFileSync(join(baseDir, "test", "main.test.kapy"), TEST_KAPY, "utf-8");
 
 	ctx.log(`✅ Created project '${name}' at ${baseDir}`);

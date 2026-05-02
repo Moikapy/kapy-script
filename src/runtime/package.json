@@ -11,11 +11,37 @@
   },
   "main": "index.ts",
   "types": "index.ts",
+  "exports": {
+    ".": {
+      "import": "./index.ts",
+      "types": "./index.ts"
+    },
+    "./mock": {
+      "import": "./mock.ts",
+      "types": "./mock.ts"
+    },
+    "./fs": {
+      "import": "./fs/index.ts",
+      "types": "./fs/index.ts"
+    },
+    "./http": {
+      "import": "./http/index.ts",
+      "types": "./http/index.ts"
+    },
+    "./json": {
+      "import": "./json/index.ts",
+      "types": "./json/index.ts"
+    },
+    "./ai": {
+      "import": "./ai/index.ts",
+      "types": "./ai/index.ts"
+    }
+  },
   "files": [
     "index.ts",
     "mock.ts",
-    "http/index.ts",
     "fs/index.ts",
+    "http/index.ts",
     "json/index.ts",
     "ai/index.ts"
   ],

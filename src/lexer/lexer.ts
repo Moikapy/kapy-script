@@ -275,7 +275,21 @@ export class Lexer {
         throw new LexError(this.file, this.line, this.column, "Unterminated string. Multi-line strings are not supported in v0.1.");
       }
 
-      if (this.peek() === "{") {
+      if (this.peek() === "\\") {
+        this.advance(); // consume backslash
+        const esc = this.advance();
+        switch (esc) {
+          case "n": current += "\n"; break;
+          case "t": current += "\t"; break;
+          case '"': current += '"'; break;
+          case "\\": current += "\\"; break;
+          case "{": current += "{"; break;  // Escape literal brace
+          case "}": current += "}"; break;  // Escape literal brace
+          case "'": current += "'"; break;   // Escape single quote
+          default:
+            throw new LexError(this.file, this.line, this.column, `Unknown escape sequence '\\${esc}'.`);
+        }
+      } else if (this.peek() === "{") {
         // String interpolation start
         if (current) {
           parts.push({ text: current });
@@ -299,17 +313,6 @@ export class Lexer {
           if (depth > 0) expr += c;
         }
         parts.push({ expr });
-      } else if (this.peek() === "\\") {
-        this.advance(); // consume backslash
-        const esc = this.advance();
-        switch (esc) {
-          case "n": current += "\n"; break;
-          case "t": current += "\t"; break;
-          case '"': current += '"'; break;
-          case "\\": current += "\\"; break;
-          default:
-            throw new LexError(this.file, this.line, this.column, `Unknown escape sequence '\\${esc}'.`);
-        }
       } else {
         current += this.advance();
       }

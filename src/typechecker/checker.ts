@@ -183,7 +183,18 @@ export class TypeChecker {
       case "ImplDecl":
       case "TestDecl":
       case "ImportDecl":
-        // These don't register into the function namespace directly
+        // Register stdlib modules as variables in the environment
+        if (decl.module && decl.module.length >= 2 && decl.module[0] === "kapy") {
+          const submodule = decl.module[1]; // http, fs, json, ai
+          // Each stdlib module is an object with methods
+          this.env.define(submodule, this.primitive("any"));
+        }
+        // Register named imports
+        if (decl.names) {
+          for (const name of decl.names) {
+            this.env.define(name, this.primitive("any"));
+          }
+        }
         break;
     }
   }
@@ -225,7 +236,7 @@ export class TypeChecker {
         this.checkTestDecl(decl);
         break;
       case "ImportDecl":
-        // v0.1: imports are unchecked (stdlib not implemented yet)
+        // Already handled in check() above
         break;
     }
   }
