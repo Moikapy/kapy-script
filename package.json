@@ -9,6 +9,10 @@
     "type": "git",
     "url": "https://github.com/moikapy/kapy-script"
   },
+  "bugs": {
+    "url": "https://github.com/moikapy/kapy-script/issues"
+  },
+  "homepage": "https://github.com/moikapy/kapy-script#readme",
   "main": "src/extension/index.ts",
   "types": "src/extension/index.ts",
   "exports": {
@@ -20,6 +24,8 @@
   "files": [
     "src/",
     "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
     "docs/"
   ],
   "scripts": {
@@ -27,7 +33,9 @@
     "test": "bun test",
     "test:watch": "bun test --watch",
     "kapy": "bun run src/cli/main.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "bun test",
+    "release": "npm publish --access public"
   },
   "dependencies": {
     "@moikapy/kapy": "^0.3.0"

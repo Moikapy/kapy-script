@@ -1,43 +1,27 @@
 # kapy-script
 
-The AI-native programming language. A `@moikapy/kapy` CLI extension.
+> The AI-native programming language. Designed for agent authorship, clean enough for anyone.
+
+[![CI](https://github.com/moikapy/kapy-script/actions/workflows/ci.yml/badge.svg)](https://github.com/moikapy/kapy-script/actions)
+[![npm: @kapy/script](https://img.shields.io/npm/v/@kapy/script?label=%40kapy%2Fscript)](https://www.npmjs.com/package/@kapy/script)
+[![npm: @kapy/runtime](https://img.shields.io/npm/v/@kapy/runtime?label=%40kapy%2Fruntime)](https://www.npmjs.com/package/@kapy/runtime)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+
+**v0.1** — 239 tests, 0 failures. Production-compiled, designed for humans.
 
 ## Install
 
 ```bash
-# Install the kapy CLI (if you haven't)
-bun install -g @moikapy/kapy
+# Standalone CLI
+npm install -g @kapy/script
+kapy run hello.kapy
 
-# Install kapy-script as a kapy extension
+# Or as a @moikapy/kapy extension
+bun install -g @moikapy/kapy
 kapy install @kapy/script
 ```
 
-## Usage
-
-```bash
-# Create a new project
-kapy init my-project
-cd my-project
-
-# Run it
-kapy run src/main.kapy
-
-# Type-check only
-kapy check src/main.kapy
-
-# Run tests
-kapy test
-
-# Watch mode (re-run on change)
-kapy run --watch src/main.kapy
-
-# Interactive REPL
-kapy repl
-```
-
-## The Language
-
-kapy-script is a programming language designed for AI agent authorship — but clean enough for anyone.
+## Quick Start
 
 ```kapy
 fn greet
@@ -46,33 +30,50 @@ fn greet
   "Hello, {name}!"
 ```
 
-### Key features
+```bash
+kapy init my-project
+cd my-project
+kapy run src/main.kapy
+# → Hello from my-project!
+```
 
-- **Token-efficient** — 25-35% fewer tokens than equivalent TypeScript
-- **Error-resistant** — No braces mismatch, no semicolons, no async/await
-- **Contract-first** — Every function declares `input` and `output`
-- **AI built-ins** — `llm()`, `embed()`, and `tool` are first-class
-- **TypeScript interop** — Transpiles to clean TS, runs on Bun
-- **Result type** — `Result[T, E]` with `?` and `!` unwrap operators
+## The Language
 
-### Examples
+### Functions (all async)
 
 ```kapy
-# Sealed traits (ADTs)
+fn add
+  input a: number
+  input b: number
+  output number
+  a + b
+```
+
+Every function is async. No `await`, no `async` — I/O is implicit.
+
+### Result type
+
+```kapy
+result = json.parse('{"key": "value"}')
+result?      # Unwrap Ok, propagate Err
+result!      # Unwrap Ok, crash on Err
+```
+
+### Pattern matching
+
+```kapy
 sealed trait Result
   case Ok(value: any)
   case Err(message: string)
 
-# Pattern matching
-fn classify
-  input x: number
-  output string
-  if x > 0
-    "positive"
-  else
-    "non-positive"
+match result
+  Ok(v) -> v
+  Err(e) -> handle_error(e)
+```
 
-# AI agent
+### Agents
+
+```kapy
 agent ResearchAgent
   input query: string
   output Report
@@ -81,67 +82,81 @@ agent ResearchAgent
     search_web, read_document
 
   steps
-    think("Plan research for {query}") -> plan
-    search_web(query) -> results
-    return results
-
-# Tests
-test "addition works"
-  1 + 1 == 2
+    search_web(query) -> sources
+    return sources
 ```
 
-## Architecture
+### Standard library
 
+```kapy
+import kapy/http        # HTTP client (get, post, put, del)
+import kapy/fs           # File system (readFile, writeFile, exists)
+import kapy/json         # JSON with Result types (parse, stringify)
+import kapy/ai           # AI providers (OpenAI, Anthropic, Ollama)
+import kapy/ai/chain     # LLM chaining (run, parallel, mapReduce)
+import kapy/web/router   # HTTP server (create, get, post, listen)
+import kapy/test          # Test assertions (assertEqual, assertTrue, ...)
+
+# Escape braces in strings
+text = "\{ \"hello\": 1 \}"
+result = json.parse(text)
 ```
-.kapy source
-    ↓
-Lexer (indentation-aware tokenization)
-    ↓
-Parser (recursive descent → typed AST)
-    ↓
-Type Checker (local inference, ADTs, structural compatibility)
-    ↓
-Emitter (AST → readable TypeScript)
-    ↓
-Bun runtime (execute)
-```
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `kapy run <file>` | Compile and execute a .kapy file |
+| `kapy run --watch <file>` | Re-run on file changes |
+| `kapy check <file>` | Parse and type-check |
+| `kapy fmt <file>` | Format a .kapy file |
+| `kapy fmt --check <file>` | Check formatting |
+| `kapy lint <file>` | Lint for common issues |
+| `kapy lint --strict <file>` | Treat warnings as errors |
+| `kapy test [path]` | Run test declarations |
+| `kapy init <name>` | Scaffold a new project |
+| `kapy repl` | Interactive REPL |
+
+## Version Features
+
+| Feature | v0.1 ✅ | v0.5 🔜 |
+|---------|---------|---------|
+| Functions, agents, sealed traits | ✅ | |
+| Pattern matching | ✅ | |
+| Result type with `?` and `!` | ✅ | |
+| Import, print, test | ✅ | |
+| HTTP, FS, JSON, AI providers | ✅ | |
+| Router, LLM chaining, test assertions | ✅ | |
+| Trait method dispatch | | 🔜 |
+| Exhaustiveness checking | | 🔜 |
+| Union & intersection types | | 🔜 |
+| Package manager | | 🔜 |
+
+## Stats
+
+- **37 source files**, ~7,680 lines
+- **239 tests**, 467 assertions
+- **7 example files** (hello, greet, divide, result, agent, cli-tool, web-api)
 
 ## Project Structure
 
 ```
-kapy-script/
-  src/
-    lexer/          # Tokenization
-    parser/         # AST construction
-    typechecker/    # Type inference and checking
-    transpiler/     # TypeScript emission + caching
-    runtime/        # @kapy/runtime (Result, llm, embed, mocks)
-    extension/      # kapy CLI extension (commands)
-  test/             # 150 tests, 290 assertions
-  examples/         # Sample .kapy programs
+src/
+  lexer/        Tokenizer (indentation-aware, string interpolation)
+  parser/       Recursive descent parser → AST
+  typechecker/  Local type inference, ADTs, version-gated warnings
+  transpiler/   AST → TypeScript emitter with source maps
+  runtime/      @kapy/runtime (Result, llm, embed, print, stdlib)
+  cli/          Standalone CLI (run, check, test, init, repl, fmt, lint)
+  extension/    @kapy/script kapy extension
+test/           13 test files
+examples/       7 .kapy example files
 ```
 
-## Extension Commands
+## Contributing
 
-| Command | Description |
-|---------|-------------|
-| `kapy run <file>` | Compile and execute |
-| `kapy run --watch <file>` | Re-run on file changes |
-| `kapy check <file>` | Parse and type-check |
-| `kapy test [path]` | Run test declarations |
-| `kapy init <name>` | Scaffold new project |
-| `kapy repl` | Interactive REPL |
-
-## Runtime: @kapy/runtime
-
-The transpiled TypeScript imports from `@kapy/runtime`:
-
-- `Result[T, E]` — Ok/Err with unwrap operators
-- `llm()` — Provider-agnostic LLM calls
-- `embed()` — Vector embeddings
-- `print()` — Console output
-- `mock_llm()`, `mock_embed()`, `mock_tool()` — Test doubles
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
-MIT
+MIT — see [LICENSE](./LICENSE).

@@ -1,13 +1,16 @@
 {
   "name": "@kapy/runtime",
   "version": "0.1.0",
-  "description": "Runtime for kapy-script — Result type, llm(), embed(), print(), and utilities",
-  "keywords": ["kapy", "runtime", "ai", "language"],
+  "description": "Runtime for kapy-script — Result type, llm(), embed(), print(), async stdlib, and utilities.",
+  "keywords": ["kapy", "runtime", "ai", "language", "result-type"],
   "license": "MIT",
   "author": "0xKobold",
   "repository": {
     "type": "git",
-    "url": "https://github.com/moikapy/kapy-runtime"
+    "url": "https://github.com/moikapy/kapy-script"
+  },
+  "bugs": {
+    "url": "https://github.com/moikapy/kapy-script/issues"
   },
   "main": "index.ts",
   "types": "index.ts",
