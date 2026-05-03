@@ -26,6 +26,8 @@ export class Emitter {
   private imports: Set<string> = new Set();
   private runtimeImports: Set<string> = new Set();
   private testImports: Set<string> = new Set();
+  private sourceMapLines: Map<number, number> = new Map();
+  private currentKapyLine: number = 1;
 
   /** Transpile a complete program to TypeScript */
   private anyType: KapyType = { kind: "PrimitiveType", name: "any", span: { start: { line: 0, column: 0, offset: 0, length: 0, file: "<synth>" }, end: { line: 0, column: 0, offset: 0, length: 0, file: "<synth>" } } };
@@ -36,6 +38,8 @@ export class Emitter {
     this.imports = new Set();
     this.runtimeImports = new Set();
     this.testImports = new Set();
+    this.sourceMapLines = new Map();
+    this.currentKapyLine = 1;
 
     // First pass: collect all imports needed
     for (const decl of program.declarations) {
@@ -91,12 +95,17 @@ export class Emitter {
           this.imports.add(`import { ${names} } from "${decl.from}";`);
         } else if (decl.module.length >= 2 && decl.module[0] === "kapy") {
           // kapy stdlib imports → @kapy/runtime submodules
-          const submodule = decl.module[1]; // kapy/http → http, kapy/json → json
+          // kapy/http → @kapy/runtime/http
+          // kapy/ai/chain → @kapy/runtime/ai/chain
+          // kapy/web/router → @kapy/runtime/web/router
+          const submodule = decl.module.slice(1).join("/");
           const runtimeModule = `@kapy/runtime/${submodule}`;
           if (decl.names && decl.names.length > 0) {
             this.imports.add(`import { ${decl.names.join(", ")} } from "${runtimeModule}";`);
           } else {
-            this.imports.add(`import * as ${submodule} from "${runtimeModule}";`);
+            // Default import: use last segment as the local name
+            const localName = decl.module[decl.module.length - 1];
+            this.imports.add(`import * as ${localName} from "${runtimeModule}";`);
           }
         }
         break;
@@ -179,6 +188,7 @@ export class Emitter {
     const params = decl.inputs.map(p => `${p.name}: ${this.emitType(p.type ?? this.anyType)}`).join(", ");
     const returnType = decl.output_type ? this.emitType(decl.output_type) : "void";
     // All kapy-script functions are async (I/O is implicit)
+    this.currentKapyLine = decl.span.start.line;
     this.emitLine(`/** Generated from: ${decl.span.start.file}:${decl.span.start.line} */`);
     this.emitLine(`export async function ${decl.name}(${params}): Promise<${returnType}> {`);
 
@@ -192,12 +202,11 @@ export class Emitter {
   private emitAgentDecl(decl: AgentDecl): void {
     const params = decl.inputs.map(p => `${p.name}: ${this.emitType(p.type ?? this.anyType)}`).join(", ");
     const returnType = decl.output_type ? this.emitType(decl.output_type) : "any";
-
+    // Agent: track source line
+    this.currentKapyLine = decl.span.start.line;
     this.emitLine(`/** Generated from: ${decl.span.start.file}:${decl.span.start.line} */`);
     this.emitLine(`export async function ${decl.name}(${params}): Promise<${returnType}> {`);
-
     this.indent++;
-    // Agent creates a runtime context with tools
     if (decl.tools.length > 0) {
       this.emitLine(`const _ctx = KapyRuntime.createAgent({`);
       this.indent++;
@@ -219,7 +228,8 @@ export class Emitter {
   private emitToolDecl(decl: ToolDecl): void {
     const params = decl.inputs.map(p => `${p.name}: ${this.emitType(p.type ?? this.anyType)}`).join(", ");
     const returnType = decl.output_type ? this.emitType(decl.output_type) : "any";
-
+    // Tool: track source line
+    this.currentKapyLine = decl.span.start.line;
     this.emitLine(`/** Generated from: ${decl.span.start.file}:${decl.span.start.line} */`);
     this.emitLine(`export async function ${decl.name}(${params}): Promise<${returnType}> {`);
 
@@ -582,19 +592,51 @@ export class Emitter {
   }
 
   private emitLine(line: string): void {
+    this.sourceMapLines.set(this.output.length + 1, this.currentKapyLine);
     this.output.push("  ".repeat(this.indent) + line);
   }
 
-  private generateSourceMap(program: Program, _code: string): string {
-    // v0.1: Generate a basic source map mapping TS lines to .kapy lines
-    // Full source map support (using source-map library) deferred to v0.5
+  private generateSourceMap(program: Program, code: string): string {
+    // Generate a v3 source map mapping TS lines back to .kapy lines
     const kapyFile = program.file || "unknown.kapy";
+    const lines = code.split("\n");
+
+    // Build VLQ mappings — each segment maps a TS line to a .kapy line
+    let mappings = "";
+    let prevKapyLine = 0;
+
+    for (let tsLine = 0; tsLine < lines.length; tsLine++) {
+      if (tsLine > 0) mappings += ";";
+      const kapyLine = this.sourceMapLines.get(tsLine + 1); // 1-indexed
+      if (kapyLine !== undefined) {
+        // Segment: column 0 TS -> column 0 kapy, relative encoding
+        const lineDelta = kapyLine - 1 - prevKapyLine;
+        mappings += "AAAA" + vlqEncode(lineDelta);
+        prevKapyLine = kapyLine - 1;
+      }
+      // Lines without a mapping are empty segments
+    }
+
     return JSON.stringify({
       version: 3,
       sources: [kapyFile],
-      sourcesContent: [""], // Would need original source
-      mappings: "", // Would need actual mappings
+      sourcesContent: [""],
       names: [],
+      mappings,
+      file: "",
     });
   }
+}
+
+/** VLQ encode a number for source maps */
+function vlqEncode(value: number): string {
+  let v = value < 0 ? ((-value) << 1) | 1 : value << 1;
+  let result = "";
+  do {
+    let digit = v & 0x1F;
+    v >>>= 5;
+    if (v > 0) digit |= 0x20;
+    result += "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[digit];
+  } while (v > 0);
+  return result;
 }

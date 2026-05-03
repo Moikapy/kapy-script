@@ -3,11 +3,14 @@
 > Auto-maintained knowledge base. Use `/wiki-query <question>` to search.
 
 ## Entities
-- [[cli]] — Command-line interface for kapy-script. 6 commands: run (with --watch), check, test, init, repl, --version/--help. Entry point at src/cli/main.ts with modules for init (project scaffolding), pkg (manifest parsing), repl (interactive), test-runner (discovers and runs .kapy test declarations), and watch (file watcher). All commands are wired and working.
+- [[cli]] — Full CLI for kapy-script with run, check, test, init, repl, and --watch commands. Parses kapy.pkg manifests, scaffolds projects, runs tests via bun:test, and provides an interactive REPL.
 - [[docs]] — docs module in the codebase
 - [[examples]] — examples module in the codebase
+- [[extension]] — The @kapy/script kapy CLI extension. Registers 5 commands (run, check, test, init, repl) on the @moikapy/kapy framework. Extension exports register() and meta following the kapy extension API pattern.
+- [[kapy-script]] — A programming language designed for AI agent authorship. Transpiles to TypeScript, runs on Bun. Phase 2 complete: lexer + parser + type checker all working. 56 tests passing.
 - [[lexer]] — lexer module, with 3 source files, entry point at `src/lexer/index.ts`, exports 6 symbols.
-- [[parser]] — Recursive descent parser for kapy-script. 1,290 lines. All v0.1 syntax parses correctly including agent, trait, impl, parallel, with, and match. Former infinite-loop bugs fixed: synchronize() now advances past error tokens and DEDENTs, DEDENT loops have isAtEnd() guards, stepStatement() handles return, declaration() skips stray DEDENTs. Error recovery works for unclosed parens, invalid keywords, and missing block bodies.
+- [[parser]] — parser module, with 4 source files, entry point at `src/parser/index.ts`, exports 20 symbols.
+- [[runtime]] — @kapy/runtime package providing Result[T,E] type, llm()/embed() builtins, print(), KapyRuntime utilities, and mock system for testing. Mock-aware: llm/embed check for active mocks before making real API calls.
 - [[src-cli]] — src/cli module in the codebase
 - [[src-extension]] — src/extension module in the codebase
 - [[src-lexer]] — src/lexer module in the codebase
@@ -18,7 +21,6 @@
 - [[test]] — test module in the codebase
 
 ## Concepts
-- [[kapy-script]] — A programming language designed for AI agent authorship. Transpiles to TypeScript, runs on Bun. Key differentiators: token-efficient syntax (~25-35% fewer tokens than TS), contract-first functions (input/output), built-in AI primitives (llm, embed, tool), algebraic data types, pattern matching, and Result-based error handling with ? operator.
 
 ## Decisions (ADRs)
 - [[adr-001-hand-written-recursive-descent-parser]] — Chose hand-written recursive descent. PEG parsers produce poor error messages and are hard to debug. Recursive descent gives full control over error recovery and messaging, which is critical for a lan
@@ -30,4 +32,4 @@
 
 ---
 
-*Last updated: 2026-05-02 • 17 pages total*
+*Last updated: 2026-05-02 • 18 pages total*

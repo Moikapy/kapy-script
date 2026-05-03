@@ -19,7 +19,8 @@
   },
   "files": [
     "src/",
-    "README.md"
+    "README.md",
+    "docs/"
   ],
   "scripts": {
     "dev": "bun run src/cli/main.ts",

@@ -1,6 +1,6 @@
 # kapy-script
 
-> **Summary**: A programming language designed for AI agent authorship. Transpiles to TypeScript, runs on Bun. v0.1 complete through Phase 6: lexer, parser, type checker, transpiler, runtime, CLI, stdlib, formatter, and linter. 219 tests passing, 0 tsc errors. Commands: run, check, fmt, lint, test, init, repl. Stdlib modules: kapy/http, kapy/fs, kapy/json, kapy/ai.
+> **Summary**: The AI-native programming language. Transpiles .kapy to TypeScript, runs on Bun. Phases 1-6 complete: lexer, parser, type checker, transpiler, runtime, stdlib (http/fs/json/ai), CLI (run/check/test/init/repl/fmt/lint), and kapy extension. 219 tests, 0 failures.
 
 ## Location
 
@@ -16,15 +16,7 @@
 - (to be discovered)
 
 ## Key Files
-- `src/cli`
-- `src/lexer`
-- `src/parser`
-- `src/typechecker`
-- `src/transpiler`
-- `src/runtime`
-- `test`
-- `examples`
-- `docs`
+- `src/`
 
 ## Design Decisions
 - (to be documented)

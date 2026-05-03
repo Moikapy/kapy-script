@@ -1,15 +1,14 @@
-# src/lexer
+# src/typechecker
 
-> **Summary**: src/lexer module in the codebase.
+> **Summary**: src/typechecker module in the codebase.
 
 ## Location
 - **Files**: 3 source files
 
 ## Key Files
-- `src/lexer/index.ts`
-- `src/lexer/lexer.ts`
-- `src/lexer/token.ts`
-
+- `src/typechecker/checker.ts`
+- `src/typechecker/errors.ts`
+- `src/typechecker/index.ts`
 
 ## Dependencies
 - (to be discovered)

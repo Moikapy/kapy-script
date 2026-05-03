@@ -185,9 +185,28 @@ export class TypeChecker {
       case "ImportDecl":
         // Register stdlib modules as variables in the environment
         if (decl.module && decl.module.length >= 2 && decl.module[0] === "kapy") {
-          const submodule = decl.module[1]; // http, fs, json, ai
-          // Each stdlib module is an object with methods
+          const submodule = decl.module[1]; // http, fs, json, ai, test, web
           this.env.define(submodule, this.primitive("any"));
+
+          // Handle deeper paths: kapy/ai/chain → also register 'chain'
+          if (decl.module.length >= 3) {
+            // kapy/ai/chain → register 'chain'
+            // kapy/web/router → register 'router'
+            this.env.define(decl.module[2], this.primitive("any"));
+          }
+
+          // Register test assertion functions for kapy/test
+          if (submodule === "test") {
+            const testFns = ["assertEqual", "assertTrue", "assertFalse", "assertOk", "assertErr", "assertThrows", "assertApprox", "assertContains", "assertLength"];
+            for (const fn of testFns) {
+              this.env.define(fn, this.fnType([this.primitive("any")], this.primitive("any")));
+            }
+          }
+
+          // Register web/router functions
+          if (submodule === "web") {
+            this.env.define("router", this.primitive("any"));
+          }
         }
         // Register named imports
         if (decl.names) {
@@ -348,19 +367,21 @@ export class TypeChecker {
   }
 
   private checkTraitDecl(decl: TraitDecl): void {
+    // Traits are available but method resolution is v0.5+
+    // Still allow declaration for forward compatibility
     for (const method of decl.methods) {
       this.checkFnDecl(method);
     }
   }
 
   private checkImplDecl(decl: ImplDecl): void {
-    // Verify the trait exists
+    // impl resolution is v0.5+ — impl blocks are structural for now
     const traitType = this.env.lookup(decl.trait_name);
     if (!traitType) {
       this.error(
         decl.span.start.line,
         decl.span.start.column,
-        `Trait '${decl.trait_name}' is not defined. Did you forget to declare it?`,
+        `Trait '${decl.trait_name}' is not defined. Impl resolution requires v0.5+.`,
       );
     }
 

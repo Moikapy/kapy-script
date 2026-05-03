@@ -1,13 +1,22 @@
-# Web API example — demonstrates kapy/http and kapy/json
+# Web API example — demonstrates kapy/http and kapy/web/router
 # Run: kapy run examples/web-api.kapy
+# Starts a server on http://localhost:3000
 
 import kapy/http
 import kapy/json
+import kapy/web/router
 
-fn handle_request
-  input req: any
+fn main
   output any
-  match req.method
-    "GET" -> http.get("https://api.example.com/data")
-    "POST" -> http.post("https://api.example.com/data", json.stringify(req.body))
-    _ -> { status: 404, body: "Not found" }
+  app = router.create()
+  app.get("/", fn req -> text("Hello from kapy-script!"))
+  app.get("/json", fn req -> json({ message: "Hello", status: "ok" }))
+  app.get("/users/:id", fn req ->
+    params = router.parseParams("/users/:id", req.url)
+    json({ user_id: params.id })
+  )
+  app.post("/data", fn req ->
+    body = json.parse(req.body)
+    json({ received: body })
+  )
+  app.listen(3000)

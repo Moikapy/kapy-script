@@ -3,7 +3,7 @@
 > **Summary**: src/extension module in the codebase.
 
 ## Location
-- **Files**: 1 source files
+- **Files**: 7 source files
 
 ## Key Files
 - `src/extension/commands/check.ts`

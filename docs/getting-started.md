@@ -3,7 +3,11 @@
 ## Install
 
 ```bash
-bun install
+# Install the kapy CLI framework
+bun install -g @moikapy/kapy
+
+# Add kapy-script as an extension
+kapy install @kapy/script
 ```
 
 ## Commands
@@ -11,7 +15,7 @@ bun install
 | Command | Description |
 |---------|-------------|
 | `kapy run <file>` | Compile and execute a .kapy file |
-| `kapy run --watch <file>` | Re-execute on file changes |
+| `kapy run --watch <file>` | Re-run on file changes |
 | `kapy check <file>` | Parse and type-check a .kapy file |
 | `kapy fmt <file>` | Format a .kapy file |
 | `kapy fmt --check <file>` | Check if file needs formatting |
@@ -50,7 +54,7 @@ fn greet
 
 ```kapy
 x = 42        # immutable
-y := x + 1    # mutable
+y := x + 1    # mutable (note the :=)
 ```
 
 ### Control Flow
@@ -108,37 +112,49 @@ agent ResearchAgent
 
 ```kapy
 import kapy/http       # HTTP client
-import kapy/json       # JSON parse/stringify
-import kapy/fs         # File system
-import kapy/ai         # AI providers (OpenAI, Anthropic, Ollama)
-import { z } from "zod"  # npm packages
+import kapy/fs          # File system
+import kapy/json        # JSON with Result types
+import kapy/ai          # AI providers (OpenAI, Anthropic, Ollama)
+import kapy/ai/chain    # LLM chaining (sequential, parallel, map-reduce)
+import kapy/web/router  # HTTP server (create, get, post, etc.)
+import kapy/test         # Test assertions
+
+# Escape braces in strings with \{ and \}
+json_text = "\{ \\\"hello\\\": 1 \}"
+result = json.parse(json_text)
 ```
 
 ## Standard Library
 
-| Module | Functions | Description |
-|--------|-----------|-------------|
+| Module | Key Exports | Description |
+|--------|-------------|-------------|
+| `@kapy/runtime` | `Result`, `Ok`, `Err`, `llm`, `embed`, `print`, `mock_llm`, `mock_embed` | Core runtime |
 | `kapy/http` | `get`, `post`, `put`, `del` | HTTP client (fetch wrapper) |
-| `kapy/fs` | `readFile`, `writeFile`, `exists`, `listDir`, `stat`, `readJson`, `writeJson` | File system operations |
+| `kapy/fs` | `readFile`, `writeFile`, `exists`, `listDir`, `readJson`, `writeJson` | File system |
 | `kapy/json` | `parse`, `stringify`, `unsafeParse`, `unsafeStringify` | JSON with Result types |
-| `kapy/ai` | `chat`, `openaiChat`, `anthropicChat`, `ollamaChat` | LLM provider adapters |
-| `@kapy/runtime` | `Result`, `Ok`, `Err`, `llm`, `embed`, `print`, `KapyRuntime` | Core runtime |
+| `kapy/ai` | `chat`, `openaiChat`, `anthropicChat`, `ollamaChat` | LLM providers |
+| `kapy/ai/chain` | `run`, `parallel`, `mapReduce` | LLM chaining |
+| `kapy/web/router` | `create`, `json`, `text`, `html`, `redirect`, `parseParams` | HTTP server |
+| `kapy/test` | `assertEqual`, `assertTrue`, `assertFalse`, `assertOk`, `assertErr`, `assertThrows`, `assertApprox`, `assertContains`, `assertLength` | Test assertions |
 
 ## Project Scaffolding
 
 ```bash
 kapy init my-project
 cd my-project
+bun install    # Install @kapy/runtime
 kapy run src/main.kapy
 kapy test
 ```
 
 Creates:
+
 ```
 my-project/
   kapy.pkg
   package.json
   .gitignore
+  README.md
   .kapy-cache/
   src/main.kapy
   test/main.test.kapy
@@ -157,6 +173,30 @@ Test declarations use Bun's test runner:
 test "addition works"
   1 + 1 == 2
 ```
+
+With assertions:
+
+```kapy
+import kapy/test
+
+test "json parsing"
+  result = json.parse("\{ \\\"hello\\\": 1 \}")
+  assertOk(result)
+  assertEqual(result.value, 1)
+```
+
+## Version Features
+
+| Feature | Version |
+|---------|---------|
+| Functions, agents, sealed traits, pattern matching | v0.1 ✅ |
+| Import, test, print, Result type | v0.1 ✅ |
+| HTTP, filesystem, JSON, AI providers | v0.1 ✅ |
+| HTTP router, LLM chaining, test assertions | v0.1 ✅ |
+| Trait method resolution | v0.5 🔜 |
+| Exhaustiveness checking | v0.5 🔜 |
+| Union and intersection types | v0.5 🔜 |
+| Package manager (install/publish) | v0.5 🔜 |
 
 ## License
 

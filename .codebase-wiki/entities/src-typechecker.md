@@ -10,6 +10,7 @@
 - `src/typechecker/errors.ts`
 - `src/typechecker/index.ts`
 
+
 ## Dependencies
 - (to be discovered)
 

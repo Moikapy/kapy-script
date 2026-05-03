@@ -35,6 +35,18 @@
     "./ai": {
       "import": "./ai/index.ts",
       "types": "./ai/index.ts"
+    },
+    "./ai/chain": {
+      "import": "./ai/chain.ts",
+      "types": "./ai/chain.ts"
+    },
+    "./web/router": {
+      "import": "./web/index.ts",
+      "types": "./web/index.ts"
+    },
+    "./test": {
+      "import": "./test/index.ts",
+      "types": "./test/index.ts"
     }
   },
   "files": [
@@ -43,7 +55,10 @@
     "fs/index.ts",
     "http/index.ts",
     "json/index.ts",
-    "ai/index.ts"
+    "ai/index.ts",
+    "ai/chain.ts",
+    "web/index.ts",
+    "test/index.ts"
   ],
   "dependencies": {}
 }

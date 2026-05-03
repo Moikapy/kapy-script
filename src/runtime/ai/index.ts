@@ -140,6 +140,13 @@ export async function chat(
   messages: ChatMessage[],
   config?: Partial<AIConfig>,
 ): Promise<Result<string, string>> {
+  // Check for mock first
+  const { get_llm_mock } = await import("../mock.js");
+  const mockResponse = get_llm_mock();
+  if (mockResponse !== null) {
+    return Ok(mockResponse);
+  }
+
   const provider = config?.provider || "openai";
   const merged = { ...config, provider } as AIConfig;
 

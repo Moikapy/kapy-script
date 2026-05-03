@@ -6,7 +6,9 @@
 - **Files**: 1 source files
 
 ## Key Files
+- `examples/.kapy-cache/cli-tool.09837b6b6640ba29.ts`
 - `examples/.kapy-cache/hello.330ee00537c5f6d1.ts`
+
 
 ## Dependencies
 - (to be discovered)
