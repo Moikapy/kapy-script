@@ -153,7 +153,7 @@ function runTestFile(filePath: string): TestResult {
 
   // Transpile
   const emitter = new Emitter();
-  const { code } = emitter.emit(ast);
+  const { code } = emitter.emit(ast, source);
 
   // Add bun:test import if not present
   const testCode = code.includes('test("') ? code : code;

@@ -28,11 +28,12 @@ export class Emitter {
   private testImports: Set<string> = new Set();
   private sourceMapLines: Map<number, number> = new Map();
   private currentKapyLine: number = 1;
+  private originalSource: string = "";
 
   /** Transpile a complete program to TypeScript */
   private anyType: KapyType = { kind: "PrimitiveType", name: "any", span: { start: { line: 0, column: 0, offset: 0, length: 0, file: "<synth>" }, end: { line: 0, column: 0, offset: 0, length: 0, file: "<synth>" } } };
 
-  emit(program: Program): { code: string; sourceMap: string } {
+  emit(program: Program, source?: string): { code: string; sourceMap: string } {
     this.output = [];
     this.indent = 0;
     this.imports = new Set();
@@ -40,6 +41,7 @@ export class Emitter {
     this.testImports = new Set();
     this.sourceMapLines = new Map();
     this.currentKapyLine = 1;
+    this.originalSource = source || "";
 
     // First pass: collect all imports needed
     for (const decl of program.declarations) {
@@ -620,7 +622,7 @@ export class Emitter {
     return JSON.stringify({
       version: 3,
       sources: [kapyFile],
-      sourcesContent: [""],
+      sourcesContent: [this.originalSource],
       names: [],
       mappings,
       file: "",

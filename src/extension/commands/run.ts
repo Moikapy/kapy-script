@@ -28,14 +28,15 @@ export function compile(source: string, filePath: string) {
 	const checker = new TypeChecker();
 	checker.setFile(filePath);
 	const typeErrors = checker.check(ast);
+	const typeWarnings = checker.getWarnings();
 	// Type errors are printed but don't block compilation
 	// (unlike the CLI check command which exits on errors)
 
 	// Phase 4: Transpile
 	const emitter = new Emitter();
-	const { code, sourceMap } = emitter.emit(ast);
+	const { code, sourceMap } = emitter.emit(ast, source);
 
-	return { code, sourceMap, ast, typeErrors };
+	return { code, sourceMap, ast, typeErrors, typeWarnings };
 }
 
 /** Run a .kapy file */

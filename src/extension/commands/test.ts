@@ -137,7 +137,7 @@ function runTestFile(filePath: string, ctx: CommandContext): TestResult {
 
 	// Transpile
 	const emitter = new Emitter();
-	const { code } = emitter.emit(ast);
+	const { code } = emitter.emit(ast, source);
 
 	// Write and run via bun test
 	const cacheDir = join(dirname(filePath), ".kapy-cache");

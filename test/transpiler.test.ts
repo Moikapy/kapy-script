@@ -268,15 +268,20 @@ describe("Transpiler", () => {
     expect(ts).toContain("Printable");
   });
 
-  it("generates source map stub", () => {
+  it("generates source map with VLQ mappings and sourcesContent", () => {
     const source = `fn main
   print("hello")`;
     const tokens = new Lexer(source, "test.kapy").tokenize();
     const ast = new Parser(tokens, "test.kapy").parse();
     const emitter = new Emitter();
-    const { sourceMap } = emitter.emit(ast);
+    const { sourceMap } = emitter.emit(ast, source);
     const map = JSON.parse(sourceMap);
     expect(map.version).toBe(3);
     expect(map.sources).toContain("test.kapy");
+    expect(map.sourcesContent[0]).toBe(source);
+    expect(map.mappings.length).toBeGreaterThan(0);
+    // Mappings should have at least one non-empty segment (the function declaration)
+    const nonEmptySegments = map.mappings.split(";").filter((s: string) => s.length > 0);
+    expect(nonEmptySegments.length).toBeGreaterThan(0);
   });
 });

@@ -122,6 +122,7 @@ export function typeName(t: KapyType): string {
 
 export class TypeChecker {
   private errors: TypeCheckError[] = [];
+  private warnings: TypeCheckError[] = [];
   private env: TypeEnv;
   private sealedTraits: Map<string, SealedTraitDecl> = new Map();
   private functionSignatures: Map<string, FnDecl> = new Map();
@@ -149,9 +150,10 @@ export class TypeChecker {
     // HTTP and fs will be available via stdlib imports — not builtins in checker
   }
 
-  /** Check an entire program. Returns all type errors found. */
+  /** Check an entire program. Returns type errors (blocking issues). Warnings are non-blocking. */
   check(program: Program): TypeCheckError[] {
     this.errors = [];
+    this.warnings = [];
 
     // First pass: register all top-level declarations
     for (const decl of program.declarations) {
@@ -163,7 +165,13 @@ export class TypeChecker {
       this.checkDeclaration(decl);
     }
 
+    // Return errors only (warnings are non-blocking — callers can get them via getWarnings())
     return this.errors;
+  }
+
+  /** Get warnings from the last check() call */
+  getWarnings(): TypeCheckError[] {
+    return this.warnings;
   }
 
   private registerDeclaration(decl: Declaration): void {
@@ -197,10 +205,16 @@ export class TypeChecker {
 
           // Register test assertion functions for kapy/test
           if (submodule === "test") {
-            const testFns = ["assertEqual", "assertTrue", "assertFalse", "assertOk", "assertErr", "assertThrows", "assertApprox", "assertContains", "assertLength"];
-            for (const fn of testFns) {
-              this.env.define(fn, this.fnType([this.primitive("any")], this.primitive("any")));
-            }
+            // assertEqual, assertApprox take 2+ args
+            this.env.define("assertEqual", this.fnType([this.primitive("any"), this.primitive("any")], this.primitive("any")));
+            this.env.define("assertApprox", this.fnType([this.primitive("any"), this.primitive("any"), this.primitive("any")], this.primitive("any")));
+            this.env.define("assertTrue", this.fnType([this.primitive("any")], this.primitive("any")));
+            this.env.define("assertFalse", this.fnType([this.primitive("any")], this.primitive("any")));
+            this.env.define("assertOk", this.fnType([this.primitive("any")], this.primitive("any")));
+            this.env.define("assertErr", this.fnType([this.primitive("any")], this.primitive("any")));
+            this.env.define("assertThrows", this.fnType([this.primitive("any")], this.primitive("any")));
+            this.env.define("assertContains", this.fnType([this.primitive("any"), this.primitive("any")], this.primitive("any")));
+            this.env.define("assertLength", this.fnType([this.primitive("any"), this.primitive("any")], this.primitive("any")));
           }
 
           // Register web/router functions
@@ -367,8 +381,12 @@ export class TypeChecker {
   }
 
   private checkTraitDecl(decl: TraitDecl): void {
-    // Traits are available but method resolution is v0.5+
-    // Still allow declaration for forward compatibility
+    // Warn: trait method dispatch requires v0.5+
+    this.warn(
+      decl.span.start.line,
+      decl.span.start.column,
+      "Trait method dispatch requires v0.5+. Traits declare interfaces but impl dispatch is structural in v0.1.",
+    );
     for (const method of decl.methods) {
       this.checkFnDecl(method);
     }
@@ -659,6 +677,20 @@ export class TypeChecker {
           }
         }
 
+        // Warn: non-exhaustive matches may crash at runtime in v0.1
+        // v0.5+ will support exhaustiveness checking
+        const hasWildcard = expr.cases.some(c =>
+          c.pattern.kind === "WildcardPattern" ||
+          (c.pattern.kind === "IdentifierPattern" && c.pattern.name === "_"),
+        );
+        if (!hasWildcard) {
+          this.warn(
+            expr.span.start.line,
+            expr.span.start.column,
+            "Non-exhaustive match: add a '_ -> default' case or use a sealed trait. Exhaustiveness checking requires v0.5+.",
+          );
+        }
+
         return resultType ?? this.primitive("any");
       }
 
@@ -717,6 +749,11 @@ export class TypeChecker {
       }
 
       case "ParallelExpr": {
+        this.warn(
+          expr.span.start.line,
+          expr.span.start.column,
+          "Parallel blocks are experimental in v0.1 — execution is sequential, not concurrent. True parallelism requires v0.5+.",
+        );
         const parallelEnv = this.env.child();
         for (const assignment of expr.assignments) {
           const valueType = this.checkExpression(assignment.value);
@@ -967,6 +1004,10 @@ export class TypeChecker {
 
   private error(line: number, column: number, message: string): void {
     this.errors.push(new TypeCheckError(this.currentFile, line, column, message));
+  }
+
+  private warn(line: number, column: number, message: string): void {
+    this.warnings.push(new TypeCheckError(this.currentFile, line, column, `⚠ ${message}`));
   }
 
   private currentFile: string = "<input>";

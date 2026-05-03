@@ -63,6 +63,12 @@ export function compile(source: string, filePath: string): { code: string; sourc
   const checker = new TypeChecker();
   checker.setFile(filePath);
   const typeErrors = checker.check(ast);
+  // Display warnings (non-blocking)
+  const warnings = checker.getWarnings();
+  for (const warn of warnings) {
+    console.error(formatTypeError(warn, source));
+  }
+  // Display errors (blocking)
   if (typeErrors.length > 0) {
     for (const error of typeErrors) {
       console.error(formatTypeError(error, source));
@@ -72,7 +78,7 @@ export function compile(source: string, filePath: string): { code: string; sourc
 
   // Phase 4: Transpile
   const emitter = new Emitter();
-  const { code, sourceMap } = emitter.emit(ast);
+  const { code, sourceMap } = emitter.emit(ast, source);
 
   return { code, sourceMap, ast };
 }

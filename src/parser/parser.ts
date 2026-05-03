@@ -458,17 +458,17 @@ export class Parser {
       module = from.split("/");
     } else {
       // Module path: import kapy/ai/react or import utils.helpers
-      const first = this.consume(TokenType.IDENTIFIER, "Expected module name.");
-      module.push(first.lexeme);
+      const first = this.consumeModuleSegment("Expected module name.");
+      module.push(first);
 
       // Handle dotted paths and slash paths
       while (true) {
         if (this.check(TokenType.SLASH)) {
           this.advance();
-          module.push(this.consume(TokenType.IDENTIFIER, "Expected module segment.").lexeme);
+          module.push(this.consumeModuleSegment("Expected module segment."));
         } else if (this.check(TokenType.DOT)) {
           this.advance();
-          module.push(this.consume(TokenType.IDENTIFIER, "Expected module segment.").lexeme);
+          module.push(this.consumeModuleSegment("Expected module segment."));
         } else {
           break;
         }
@@ -1204,6 +1204,30 @@ export class Parser {
   }
 
   // ── Helpers ──
+
+  /** Accept an identifier or keyword as a module path segment.
+   *  Allows "import kapy/test" where "test" is a keyword. */
+  private consumeModuleSegment(message: string): string {
+    // Keywords that are valid as import path segments
+    const validKeywords = new Set([
+      TokenType.TEST, TokenType.FN, TokenType.AGENT, TokenType.TOOL,
+      TokenType.TRAIT, TokenType.SEALED, TokenType.IMPL, TokenType.MATCH,
+      TokenType.IF, TokenType.ELSE, TokenType.FOR, TokenType.WHILE,
+      TokenType.IN, TokenType.INPUT, TokenType.OUTPUT, TokenType.STEPS,
+      TokenType.RETURN, TokenType.IMPORT, TokenType.FROM, TokenType.CASE,
+      TokenType.PARALLEL, TokenType.WITH, TokenType.TIMEOUT,
+      TokenType.THINK, TokenType.PERMISSIONS, TokenType.BUDGET,
+      TokenType.RATE_LIMIT, TokenType.TOOLS, TokenType.TRUE, TokenType.FALSE,
+    ]);
+
+    if (this.check(TokenType.IDENTIFIER)) {
+      return this.advance().lexeme;
+    }
+    if (validKeywords.has(this.peek().type)) {
+      return this.advance().lexeme;
+    }
+    throw this.error(this.peek(), message);
+  }
 
   private consumeNewline(): void {
     // Accept either a newline or we're at a dedent (which implies the previous line ended)

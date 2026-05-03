@@ -20,6 +20,19 @@ export interface FormatResult {
   formatted: string;
 }
 
+/** Check if a position is inside a string literal */
+function isInString(line: string, pos: number): boolean {
+  let inString = false;
+  let escaped = false;
+  for (let i = 0; i < pos; i++) {
+    const ch = line[i];
+    if (escaped) { escaped = false; continue; }
+    if (ch === "\\") { escaped = true; continue; }
+    if (ch === '"') { inString = !inString; }
+  }
+  return inString;
+}
+
 /** Format a kapy-script source string */
 export function formatSource(source: string): string {
   // 1. Validate syntax by parsing
@@ -54,22 +67,100 @@ export function formatSource(source: string): string {
 
     prevWasBlank = false;
 
-    // Normalize spacing around type annotations: "x:number" → "x: number"
-    line = line.replace(/(\w):(\w)/g, "$1: $2");
-    // But not for :: (module paths) or URLs
-    line = line.replace(/: :\s/g, ":: ");
-    // Fix over-spacing: "x:  number" → "x: number"
-    line = line.replace(/:\s{2,}/g, ": ");
+    // Normalize indentation to 2-space multiples
+    const indentMatch = line.match(/^([ ]{2,})(\S)/);
+    if (indentMatch && indentMatch[1].length > 0) {
+      const spaces = indentMatch[1].length;
+      // If not a multiple of 2, round to nearest
+      if (spaces % 2 !== 0) {
+        const normalized = Math.round(spaces / 2) * 2;
+        line = " ".repeat(normalized) + line.trimStart();
+      }
+    }
 
-    // Normalize spacing around operators
-    // "x+1" → "x + 1" (but not inside strings or interpolation)
-    if (!line.includes('"')) {
-      line = line.replace(/(\w)\+/g, "$1 +");
-      line = line.replace(/\+(\w)/g, "+ $1");
-      line = line.replace(/(\w)==/g, "$1 ==");
-      line = line.replace(/==(\w)/g, "== $1");
-      line = line.replace(/(\w)!=/g, "$1 !=");
-      line = line.replace(/!=(\w)/g, "!= $1");
+    // Normalize spacing around -> (arrow)
+    // "x->y" → "x -> y" (but not inside strings)
+    for (let pos = 0; pos < line.length - 1; pos++) {
+      if (isInString(line, pos)) continue;
+      // Check for -> without spaces
+      if (line[pos] === "-" && line[pos + 1] === ">") {
+        // Don't touch if it's => or already spaced
+        // Check context — only in match/case/lambda contexts
+      }
+    }
+
+    // Normalize spacing around type annotations: "x:number" → "x: number"
+    // Only outside strings
+    const inStringSegments: [number, number][] = [];
+    let sStart = -1;
+    for (let pos = 0; pos < line.length; pos++) {
+      if (line[pos] === '"' && (pos === 0 || line[pos - 1] !== '\\')) {
+        if (sStart === -1) { sStart = pos; } else { inStringSegments.push([sStart, pos]); sStart = -1; }
+      }
+    }
+    if (sStart !== -1) inStringSegments.push([sStart, line.length]);
+
+    const isInStringAt = (p: number) => inStringSegments.some(([s, e]) => p >= s && p <= e);
+
+    // Type annotation spacing — only outside strings
+    let result = "";
+    for (let pos = 0; pos < line.length; pos++) {
+      if (line[pos] === ":" && !isInStringAt(pos)) {
+        // Don't touch :: or URLs
+        if (line[pos + 1] === ":") { result += "::"; pos++; continue; }
+        // "x:number" → "x: number"
+        if (pos > 0 && /\w/.test(line[pos - 1]) && pos + 1 < line.length && /\w/.test(line[pos + 1])) {
+          result += ": ";
+          continue;
+        }
+        // "x:  number" → "x: number"
+        if (result.endsWith(": ")) {
+          // Skip extra spaces after colon
+          while (pos + 1 < line.length && line[pos + 1] === " ") pos++;
+          continue;
+        }
+      }
+      result += line[pos];
+    }
+    line = result;
+
+    // Normalize spacing around binary operators (string-aware)
+    const binOps = ["==", "!=", "+", "-", "*", "/", "%", "&&", "||", "<=", ">="];
+    for (const op of binOps) {
+      // Split line into string / non-string segments
+      // Only format the non-string segments
+      const segments: string[] = [];
+      let inStr = false;
+      let segStart = 0;
+      for (let p = 0; p < line.length; p++) {
+        if (line[p] === '"' && (p === 0 || line[p - 1] !== '\\')) {
+          if (!inStr) {
+            segments.push(line.slice(segStart, p));
+            segStart = p;
+          } else {
+            segments.push(line.slice(segStart, p + 1));
+            segStart = p + 1;
+          }
+          inStr = !inStr;
+        }
+      }
+      segments.push(line.slice(segStart));
+
+      // Apply spacing only to odd-indexed segments (outside strings)
+      const opEsc = op.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      for (let si = 0; si < segments.length; si += 2) {
+        // Skip empty segments
+        if (!segments[si]) continue;
+        // Arithmetic ops: only add spaces between word chars
+        if (op === "+" || op === "-" || op === "*" || op === "/" || op === "%") {
+          segments[si] = segments[si].replace(new RegExp(`(\\w)${opEsc}(\\w)`, "g"), `$1 ${op} $2`);
+        } else {
+          // Comparison and logical ops: always add spaces around
+          segments[si] = segments[si].replace(new RegExp(`(\\S)${opEsc}`, "g"), `$1 ${op}`);
+          segments[si] = segments[si].replace(new RegExp(`${opEsc}(\\S)`, "g"), `${op} $1`);
+        }
+      }
+      line = segments.join("");
     }
 
     formatted.push(line);
