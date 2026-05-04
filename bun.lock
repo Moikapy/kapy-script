@@ -6,6 +6,7 @@
       "name": "kapy-script",
       "dependencies": {
         "@moikapy/kapy": "^0.3.0",
+        "@moikapy/kapy-runtime": "^0.1.0",
       },
       "devDependencies": {
         "@types/bun": "^1.3.13",
@@ -19,6 +20,8 @@
   },
   "packages": {
     "@moikapy/kapy": ["@moikapy/kapy@0.3.0", "", { "dependencies": { "picocolors": "^1.1.0", "zod": "^4.3.6" }, "bin": { "kapy": "dist/cli.js" } }, "sha512-3xjfVCCQPLQQeSfgTEcLRYQ7//jWkz+trpLBNHYNBlnQs3GNNRj9NrIQfz1SBh7HH+5hproTxyd/3NvWsicjiQ=="],
+
+    "@moikapy/kapy-runtime": ["@moikapy/kapy-runtime@0.1.0", "", {}, "sha512-ClczN1pQRA7IvJLFYRYuCSJL/4Wl8Gjsa0ex12OqgiDwNKK+r0fd3YED9w5a0Mc1Jd8C2l3GBrXWeq1F6lMT0g=="],
 
     "@types/bun": ["@types/bun@1.3.13", "", { "dependencies": { "bun-types": "1.3.13" } }, "sha512-9fqXWk5YIHGGnUau9TEi+qdlTYDAnOj+xLCmSTwXfAIqXr2x4tytJb43E9uCvt09zJURKXwAtkoH4nLQfzeTXw=="],
 
