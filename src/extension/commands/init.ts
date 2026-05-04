@@ -17,10 +17,10 @@ version: 0.1.0
 entry: src/main.kapy
 
 extensions
-  @kapy/script
+  @moikapy/kapy-script
 
 dependencies
-  @kapy/runtime: ^0.1.0
+  @moikapy/kapy-runtime: ^0.1.0
 
 ai_provider: openai
 ai_model: gpt-4
@@ -36,7 +36,7 @@ const PACKAGE_JSON = (name: string) => `{
     "check": "kapy check src/main.kapy"
   },
   "dependencies": {
-    "@kapy/runtime": "^0.1.0"
+    "@moikapy/kapy-runtime": "^0.1.0"
   }
 }
 `;
@@ -56,7 +56,7 @@ A kapy-script project.
 ## Getting Started
 
 \`\`\`bash
-bun install    # Install @kapy/runtime
+bun install    # Install @moikapy/kapy-runtime
 kapy run src/main.kapy
 kapy test
 \`\`\`
@@ -92,6 +92,6 @@ export async function initCommand(ctx: CommandContext): Promise<void> {
 	console.log("");
 	console.log("Next steps:");
 	console.log(`  cd ${name}`);
-	console.log("  bun install    # Install @kapy/runtime");
+	console.log("  bun install    # Install @moikapy/kapy-runtime");
 	console.log("  kapy run src/main.kapy");
 }

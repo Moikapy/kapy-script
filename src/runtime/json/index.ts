@@ -5,7 +5,7 @@
  * Parse a JSON string into a value.
  * Returns Result.Ok for valid JSON, Result.Err for invalid.
  */
-import { Ok, Err, type Result } from "../index";
+import { Ok, Err, type Result } from "../index.js";
 
 export function parse<T = unknown>(text: string): Result<T, string> {
   try {

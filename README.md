@@ -3,8 +3,8 @@
 > The AI-native programming language. Designed for agent authorship, clean enough for anyone.
 
 [![CI](https://github.com/moikapy/kapy-script/actions/workflows/ci.yml/badge.svg)](https://github.com/moikapy/kapy-script/actions)
-[![npm: @kapy/script](https://img.shields.io/npm/v/@kapy/script?label=%40kapy%2Fscript)](https://www.npmjs.com/package/@kapy/script)
-[![npm: @kapy/runtime](https://img.shields.io/npm/v/@kapy/runtime?label=%40kapy%2Fruntime)](https://www.npmjs.com/package/@kapy/runtime)
+[![npm: @moikapy/kapy-script](https://img.shields.io/npm/v/@moikapy/kapy-script?label=%40kapy%2Fscript)](https://www.npmjs.com/package/@moikapy/kapy-script)
+[![npm: @moikapy/kapy-runtime](https://img.shields.io/npm/v/@moikapy/kapy-runtime?label=%40kapy%2Fruntime)](https://www.npmjs.com/package/@moikapy/kapy-runtime)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
 **v0.1** — 239 tests, 0 failures. Production-compiled, designed for humans.
@@ -13,12 +13,12 @@
 
 ```bash
 # Standalone CLI
-npm install -g @kapy/script
+npm install -g @moikapy/kapy-script
 kapy run hello.kapy
 
 # Or as a @moikapy/kapy extension
 bun install -g @moikapy/kapy
-kapy install @kapy/script
+kapy install @moikapy/kapy-script
 ```
 
 ## Quick Start
@@ -146,9 +146,9 @@ src/
   parser/       Recursive descent parser → AST
   typechecker/  Local type inference, ADTs, version-gated warnings
   transpiler/   AST → TypeScript emitter with source maps
-  runtime/      @kapy/runtime (Result, llm, embed, print, stdlib)
+  runtime/      @moikapy/kapy-runtime (Result, llm, embed, print, stdlib)
   cli/          Standalone CLI (run, check, test, init, repl, fmt, lint)
-  extension/    @kapy/script kapy extension
+  extension/    @moikapy/kapy-script kapy extension
 test/           13 test files
 examples/       7 .kapy example files
 ```

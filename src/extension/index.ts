@@ -10,11 +10,11 @@
  *   kapy repl               Interactive REPL
  *
  * Install:
- *   kapy install @kapy/script
+ *   kapy install @moikapy/kapy-script
  *
  * Or in kapy.pkg:
  *   extensions:
- *     - @kapy/script
+ *     - @moikapy/kapy-script
  */
 
 import type { KapyExtensionAPI } from "@moikapy/kapy";
@@ -25,7 +25,7 @@ import { initCommand } from "./commands/init.js";
 import { replCommand } from "./commands/repl.js";
 
 export const meta = {
-	name: "@kapy/script",
+	name: "@moikapy/kapy-script",
 	version: "0.1.0",
 	description: "The AI-native programming language. Compile, run, and test .kapy files.",
 	dependencies: [],

@@ -27,7 +27,7 @@ All notable changes to kapy-script are documented here.
 - All functions emitted as `async`
 - Content-hash based cache (`.kapy-cache/`)
 - Source maps with VLQ-encoded line mappings and `sourcesContent`
-- `@kapy/runtime` package with subpath exports
+- `@moikapy/kapy-runtime` package with subpath exports
 
 **Phase 4: CLI & Runtime**
 - `kapy run` — compile and execute
@@ -39,7 +39,7 @@ All notable changes to kapy-script are documented here.
 - `kapy fmt` — code formatter (string-aware, indent-normalizing)
 - `kapy lint` — lint for unused vars, missing output types, empty bodies
 - `kapy.pkg` project manifest parsing
-- `@kapy/script` extension for `@moikapy/kapy` CLI
+- `@moikapy/kapy-script` extension for `@moikapy/kapy` CLI
 
 **Phase 5: Standard Library**
 - `kapy/http` — get, post, put, del (fetch wrapper with Result types)

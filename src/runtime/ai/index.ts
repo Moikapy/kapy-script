@@ -1,7 +1,7 @@
 // Kapy Runtime — AI Provider Adapters
 // Config-driven access to LLM providers (OpenAI, Anthropic)
 
-import { Ok, Err, type Result } from "../index";
+import { Ok, Err, type Result } from "../index.js";
 
 // ── Provider Types ──
 

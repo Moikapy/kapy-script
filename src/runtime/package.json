@@ -1,5 +1,5 @@
 {
-  "name": "@kapy/runtime",
+  "name": "@moikapy/kapy-runtime",
   "version": "0.1.0",
   "description": "Runtime for kapy-script — Result type, llm(), embed(), print(), async stdlib, and utilities.",
   "keywords": ["kapy", "runtime", "ai", "language", "result-type"],
@@ -61,7 +61,9 @@
     "ai/index.ts",
     "ai/chain.ts",
     "web/index.ts",
-    "test/index.ts"
+    "test/index.ts",
+    "README.md",
+    "LICENSE"
   ],
   "dependencies": {}
 }

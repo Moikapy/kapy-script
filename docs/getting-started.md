@@ -7,7 +7,7 @@
 bun install -g @moikapy/kapy
 
 # Add kapy-script as an extension
-kapy install @kapy/script
+kapy install @moikapy/kapy-script
 ```
 
 ## Commands
@@ -128,7 +128,7 @@ result = json.parse(json_text)
 
 | Module | Key Exports | Description |
 |--------|-------------|-------------|
-| `@kapy/runtime` | `Result`, `Ok`, `Err`, `llm`, `embed`, `print`, `mock_llm`, `mock_embed` | Core runtime |
+| `@moikapy/kapy-runtime` | `Result`, `Ok`, `Err`, `llm`, `embed`, `print`, `mock_llm`, `mock_embed` | Core runtime |
 | `kapy/http` | `get`, `post`, `put`, `del` | HTTP client (fetch wrapper) |
 | `kapy/fs` | `readFile`, `writeFile`, `exists`, `listDir`, `readJson`, `writeJson` | File system |
 | `kapy/json` | `parse`, `stringify`, `unsafeParse`, `unsafeStringify` | JSON with Result types |
@@ -142,7 +142,7 @@ result = json.parse(json_text)
 ```bash
 kapy init my-project
 cd my-project
-bun install    # Install @kapy/runtime
+bun install    # Install @moikapy/kapy-runtime
 kapy run src/main.kapy
 kapy test
 ```

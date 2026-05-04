@@ -92,21 +92,21 @@ describe("Gap fixes", () => {
 
   // ── Transpiler emits correct stdlib import paths ──
 
-  it("kapy/test emits @kapy/runtime/test import", () => {
+  it("kapy/test emits @moikapy/kapy-runtime/test import", () => {
     const source = `import kapy/test\n\ntest "works"\n  assertEqual(1, 1)`;
     const { code } = transpile(source);
-    expect(code).toContain("@kapy/runtime/test");
+    expect(code).toContain("@moikapy/kapy-runtime/test");
   });
 
-  it("kapy/ai/chain emits @kapy/runtime/ai/chain import", () => {
+  it("kapy/ai/chain emits @moikapy/kapy-runtime/ai/chain import", () => {
     const source = `import kapy/ai/chain\n\nfn main\n  output any\n  chain`;
     const { code } = transpile(source);
-    expect(code).toContain("@kapy/runtime/ai/chain");
+    expect(code).toContain("@moikapy/kapy-runtime/ai/chain");
   });
 
-  it("kapy/web/router emits @kapy/runtime/web/router import", () => {
+  it("kapy/web/router emits @moikapy/kapy-runtime/web/router import", () => {
     const source = `import kapy/web/router\n\nfn main\n  output any\n  router`;
     const { code } = transpile(source);
-    expect(code).toContain("@kapy/runtime/web/router");
+    expect(code).toContain("@moikapy/kapy-runtime/web/router");
   });
 });

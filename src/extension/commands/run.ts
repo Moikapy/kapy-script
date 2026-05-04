@@ -115,7 +115,7 @@ function runFile(filePath: string, ctx: CommandContext): void {
 	mkdirSync(dirname(tsPath), { recursive: true });
 	writeFileSync(tsPath, tsCode, "utf-8");
 
-	// Resolve @kapy/runtime: prefer project's node_modules, then bundled
+	// Resolve @moikapy/kapy-runtime: prefer project's node_modules, then bundled
 	const runtimePaths = [
 		join(resolve("."), "node_modules"),
 		join(dirname(absolutePath), "node_modules"),

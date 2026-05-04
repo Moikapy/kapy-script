@@ -50,7 +50,7 @@ export class Emitter {
 
     // Emit runtime imports
     if (this.runtimeImports.size > 0) {
-      this.emitLine(`import { ${[...this.runtimeImports].join(", ")} } from "@kapy/runtime";`);
+      this.emitLine(`import { ${[...this.runtimeImports].join(", ")} } from "@moikapy/kapy-runtime";`);
       this.emitLine("");
     }
 
@@ -96,12 +96,12 @@ export class Emitter {
           const names = decl.names ? decl.names.join(", ") : "";
           this.imports.add(`import { ${names} } from "${decl.from}";`);
         } else if (decl.module.length >= 2 && decl.module[0] === "kapy") {
-          // kapy stdlib imports → @kapy/runtime submodules
-          // kapy/http → @kapy/runtime/http
-          // kapy/ai/chain → @kapy/runtime/ai/chain
-          // kapy/web/router → @kapy/runtime/web/router
+          // kapy stdlib imports → @moikapy/kapy-runtime submodules
+          // kapy/http → @moikapy/kapy-runtime/http
+          // kapy/ai/chain → @moikapy/kapy-runtime/ai/chain
+          // kapy/web/router → @moikapy/kapy-runtime/web/router
           const submodule = decl.module.slice(1).join("/");
-          const runtimeModule = `@kapy/runtime/${submodule}`;
+          const runtimeModule = `@moikapy/kapy-runtime/${submodule}`;
           if (decl.names && decl.names.length > 0) {
             this.imports.add(`import { ${decl.names.join(", ")} } from "${runtimeModule}";`);
           } else {

@@ -122,10 +122,10 @@ version: 0.1.0
 entry: src/main.kapy
 
 dependencies
-  @kapy/runtime: ^0.1.0
+  @moikapy/kapy-runtime: ^0.1.0
   zod: 3.22.0`;
     const pkg = parsePkg(content);
-    expect(pkg.dependencies["@kapy/runtime"]).toBe("^0.1.0");
+    expect(pkg.dependencies["@moikapy/kapy-runtime"]).toBe("^0.1.0");
     expect(pkg.dependencies.zod).toBe("3.22.0");
   });
 
@@ -208,7 +208,7 @@ describe("init command", () => {
     expect(pkgJson.name).toBe("test-pkg");
     expect(pkgJson.version).toBe("0.1.0");
     expect(pkgJson.type).toBe("module");
-    expect(pkgJson.dependencies["@kapy/runtime"]).toBe("^0.1.0");
+    expect(pkgJson.dependencies["@moikapy/kapy-runtime"]).toBe("^0.1.0");
 
     rmSync(baseDir, { recursive: true });
   });

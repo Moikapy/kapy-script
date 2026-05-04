@@ -1,6 +1,6 @@
 // Kapy Runtime — Test Assertions
 // Assertion helpers for kapy-script `test` declarations
-// Used via `import kapy/test` or `import { assert } from "@kapy/runtime/test"`
+// Used via `import kapy/test` or `import { assert } from "@moikapy/kapy-runtime/test"`
 
 /**
  * Assert that a value equals an expected value.

@@ -1,4 +1,4 @@
-// Kapy-script Runtime — @kapy/runtime
+// Kapy-script Runtime — @moikapy/kapy-runtime
 // Core types and builtins that kapy-script transpiled code depends on
 
 import { get_llm_mock, get_embed_mock } from "./mock";
@@ -263,7 +263,7 @@ export const KapyRuntime = {
 
 export { mock_llm, mock_embed, mock_tool, mock_reset } from "./mock";
 // ── Stdlib module re-exports ──
-// These allow `import { ... } from "@kapy/runtime/http"` etc.
+// These allow `import { ... } from "@moikapy/kapy-runtime/http"` etc.
 
 export * as http from "./http";
 export * as fs from "./fs";

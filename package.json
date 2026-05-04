@@ -1,5 +1,5 @@
 {
-  "name": "@kapy/script",
+  "name": "@moikapy/kapy-script",
   "version": "0.1.0",
   "description": "The AI-native programming language. A kapy CLI extension for compiling, running, and testing .kapy files.",
   "keywords": ["kapy-extension", "language", "compiler", "ai", "transpiler", "kapy"],

@@ -19,10 +19,10 @@ version: 0.1.0
 entry: src/main.kapy
 
 extensions
-  @kapy/script
+  @moikapy/kapy-script
 
 dependencies
-  @kapy/runtime: ^0.1.0
+  @moikapy/kapy-runtime: ^0.1.0
 
 ai_provider: openai
 ai_model: gpt-4
@@ -38,7 +38,7 @@ const PACKAGE_JSON = (name: string) => `{
     "check": "kapy check src/main.kapy"
   },
   "dependencies": {
-    "@kapy/runtime": "^0.1.0"
+    "@moikapy/kapy-runtime": "^0.1.0"
   }
 }
 `;
@@ -97,7 +97,7 @@ export function initProject(options: InitOptions): void {
   writeFileSync(join(baseDir, "src", "main.kapy"), MAIN_KAPY(projectName), "utf-8");
   writeFileSync(join(baseDir, "test", "main.test.kapy"), TEST_KAPY, "utf-8");
 
-  // Create node_modules/@kapy/runtime symlink to local runtime
+  // Create node_modules/@moikapy/kapy-runtime symlink to local runtime
   const runtimeSrc = resolve(__dirname, "..", "runtime");
   const nmDir = join(baseDir, "node_modules");
   const kapyDir = join(nmDir, "@kapy");
@@ -115,7 +115,7 @@ export function initProject(options: InitOptions): void {
   console.log("");
   console.log("Next steps:");
   console.log(`  cd ${name}`);
-  console.log("  bun install    # Install @kapy/runtime");
+  console.log("  bun install    # Install @moikapy/kapy-runtime");
   console.log("  kapy run src/main.kapy");
   console.log("  kapy test");
 }
