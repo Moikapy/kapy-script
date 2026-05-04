@@ -24,16 +24,30 @@ interface OpenAIEmbedResponse {
 
 // ── Result Type ──
 
-export type ResultOk<T> = { readonly _tag: "Ok"; readonly value: T };
-export type ResultErr<E> = { readonly _tag: "Err"; readonly error: E };
+export class ResultOk<T> {
+  readonly _tag = "Ok" as const;
+  constructor(public readonly value: T) {}
+  unwrap(): T { return this.value; }
+  unwrapOrCrash(): T { return this.value; }
+  unwrapOr(defaultValue: T): T { return this.value; }
+}
+
+export class ResultErr<E> {
+  readonly _tag = "Err" as const;
+  constructor(public readonly error: E) {}
+  unwrap(): never { throw new Error(`Result.unwrap() called on Err: ${JSON.stringify(this.error)}`); }
+  unwrapOrCrash(): never { throw new Error(`Result.unwrapOrCrash() called on Err: ${JSON.stringify(this.error)}`); }
+  unwrapOr<T>(defaultValue: T): T { return defaultValue; }
+}
+
 export type Result<T, E = string> = ResultOk<T> | ResultErr<E>;
 
 export function Ok<T>(value: T): ResultOk<T> {
-  return { _tag: "Ok", value };
+  return new ResultOk(value);
 }
 
 export function Err<E>(error: E): ResultErr<E> {
-  return { _tag: "Err", error };
+  return new ResultErr(error);
 }
 
 export function isOk<T, E>(result: Result<T, E>): result is ResultOk<T> {
