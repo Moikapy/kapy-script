@@ -136,6 +136,7 @@ export class TypeChecker {
   private registerBuiltins(): void {
     // Built-in functions
     this.env.define("print", this.fnType([this.primitive("any")], this.primitive("void")));
+    // print accepts any number of arguments (variadic) — type checker allows extra args
     this.env.define("llm", this.fnType([this.primitive("string"), this.primitive("any")], this.generic("Result", [this.primitive("any"), this.primitive("string")])));
     this.env.define("embed", this.fnType([this.primitive("string")], this.generic("Result", [this.named("number[]"), this.primitive("string")])));
 
@@ -586,10 +587,15 @@ export class TypeChecker {
         // Check argument types
         const argTypes = expr.args.map(a => this.checkExpression(a));
 
+        // Determine if callee is a variadic function (e.g., print)
+        const calleeName = expr.callee.kind === "Identifier" ? (expr.callee as any).name : "";
+        const isVariadic = calleeName === "print";
+
         // If callee type is a function type, check arg compatibility
         if (calleeType.kind === "FunctionType") {
           const fnType = calleeType as FunctionType;
-          if (fnType.params.length !== argTypes.length) {
+          // Allow variadic functions to accept more args than params
+          if (!isVariadic && fnType.params.length !== argTypes.length) {
             this.error(
               expr.span.start.line,
               expr.span.start.column,

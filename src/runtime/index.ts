@@ -229,8 +229,8 @@ export async function embed(text: string, config?: Partial<LLMConfig>): Promise<
 
 // ── Print Builtin ──
 
-export function print(value: any): void {
-  console.log(value);
+export function print(...values: any[]): void {
+  console.log(...values);
 }
 
 // ── Kapy Test Runner ──
