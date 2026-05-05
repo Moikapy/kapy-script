@@ -46,7 +46,7 @@ export async function testCommand(ctx: CommandContext): Promise<void> {
 	let totalFailed = 0;
 
 	for (const file of files) {
-		const result = runTestFile(file, ctx);
+		const result = await runTestFile(file, ctx);
 		results.push(result);
 		totalPassed += result.passed;
 		totalFailed += result.failed;
@@ -83,7 +83,7 @@ function findTestFiles(dir: string): string[] {
 	return files;
 }
 
-function runTestFile(filePath: string, ctx: CommandContext): TestResult {
+async function runTestFile(filePath: string, ctx: CommandContext): Promise<TestResult> {
 	const errors: string[] = [];
 	console.log(`  📄 ${filePath}`);
 

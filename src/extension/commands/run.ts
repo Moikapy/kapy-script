@@ -53,14 +53,14 @@ export async function runCommand(ctx: CommandContext): Promise<void> {
 
 	if (watch) {
 		const { watchAndRun } = await import("../watch.js");
-		watchAndRun(filePath, (file: string) => runFile(file, ctx));
+		watchAndRun(filePath, async (file: string) => runFile(file, ctx));
 	} else {
-		runFile(filePath, ctx);
+		await runFile(filePath, ctx);
 	}
 }
 
 /** Run a single file — shared by run and watch */
-function runFile(filePath: string, ctx: CommandContext): void {
+async function runFile(filePath: string, ctx: CommandContext): Promise<void> {
 	const absolutePath = resolve(filePath);
 	let source: string;
 	try {
