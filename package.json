@@ -1,8 +1,15 @@
 {
   "name": "@moikapy/kapy-script",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "The AI-native programming language. A kapy CLI extension for compiling, running, and testing .kapy files.",
-  "keywords": ["kapy-extension", "language", "compiler", "ai", "transpiler", "kapy"],
+  "keywords": [
+    "kapy-extension",
+    "language",
+    "compiler",
+    "ai",
+    "transpiler",
+    "kapy"
+  ],
   "license": "MIT",
   "author": "0xKobold",
   "repository": {
